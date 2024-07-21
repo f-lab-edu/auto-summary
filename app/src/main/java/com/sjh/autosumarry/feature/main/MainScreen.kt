@@ -123,7 +123,7 @@ fun MainContent(chatList: List<ChatMessage>) {
             itemsIndexed(chatList) { index, chat ->
                 if (chat.isFromUser) {
                     UserChatItem(
-                        prompt = chat.prompt,
+                        question = chat.prompt,
                     )
                 } else {
                     ModelChatItem(response = chat.prompt)
@@ -162,7 +162,7 @@ fun MainContent(chatList: List<ChatMessage>) {
 }
 
 @Composable
-fun UserChatItem(prompt: String) {
+fun UserChatItem(question: String) {
     Column(
         modifier = Modifier.padding(start = 100.dp, bottom = 16.dp),
     ) {
@@ -173,7 +173,7 @@ fun UserChatItem(prompt: String) {
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.primary)
                     .padding(16.dp),
-            text = prompt,
+            text = question,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
         )

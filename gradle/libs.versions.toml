@@ -1,24 +1,24 @@
 [versions]
 agp = "8.4.2"
-kotlin = "1.9.23"
+kotlin = "1.9.22"
 coreKtx = "1.13.1"
-androidxLifecycle = "2.8.2"
+androidxLifecycle = "2.8.3"
 junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
-lifecycleRuntimeKtx = "2.8.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+lifecycleRuntimeKtx = "2.8.3"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 klint = "12.1.1"
 orbit = "8.0.0"
 navigation = "2.7.7"
-material = "1.13.0-alpha03"
+material = "1.13.0-alpha04"
 okhttp = "4.12.0"
 retrofit = "2.11.0"
 retrofitSerialization = "1.0.0"
 logger = "2.2.0"
-androidxHilt = "1.2.0"
 hilt = "2.51.1"
+hiltNavigationCompose = "1.2.0"
 room = "2.6.1"
 ksp = "1.9.23-1.0.20"
 [libraries]
@@ -34,20 +34,13 @@ retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "ret
 retrofit-kotlinx-serialization = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "retrofitSerialization" }
 #
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
-hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hilt" }
+hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
 #
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
-androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
-androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "room" }
-#
-androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "androidxHilt" }
-androidx-hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation", version.ref = "androidxHilt" }
-androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidxHilt" }
-androidx-hilt-navigation-fragment = { group = "androidx.hilt", name = "hilt-navigation-fragment", version.ref = "androidxHilt" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 #
 logger = { module = "com.orhanobut:logger", version.ref = "logger" }
 #
@@ -69,9 +62,6 @@ androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lif
 material = { module = "com.google.android.material:material", version.ref = "material" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 #
-ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
-room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
-#
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -91,5 +81,5 @@ jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = 
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 klint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "klint"}
-androidx-room = { id = "androidx.room", version.ref = "room" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

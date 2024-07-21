@@ -9,6 +9,7 @@ import com.sjh.autosumarry.feature.main.MainRoute
 const val MAIN_ROUTE = "/main"
 
 fun NavController.navigateToMain() = navigate(MAIN_ROUTE)
+
 fun NavGraphBuilder.mainScreen(
     onHistoryClick: () -> Unit,
     modifier: Modifier = Modifier,

@@ -9,6 +9,7 @@ import com.sjh.autosumarry.feature.summary.SummaryRoute
 const val SUMMARY_ROUTE = "/summary"
 
 fun NavController.navigateToSummary() = navigate(SUMMARY_ROUTE)
+
 fun NavGraphBuilder.summaryScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,

@@ -44,24 +44,28 @@ data class ChatMessage(val isFromUser: Boolean, val prompt: String)
 
 @Composable
 fun MainRoute(
-    onHistoryClick: () -> Unit, modifier: Modifier = Modifier
+    onHistoryClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     MainScreen(
-        onHistoryClick = onHistoryClick, modifier = modifier
+        onHistoryClick = onHistoryClick,
+        modifier = modifier,
     )
 }
 
 @Composable
 fun MainScreen(
-    onHistoryClick: () -> Unit, modifier: Modifier = Modifier
+    onHistoryClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val chatList = listOf(
-        ChatMessage(isFromUser = true, prompt = "질문 질문 질문"),
-        ChatMessage(
-            isFromUser = false,
-            prompt = "대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답"
+    val chatList =
+        listOf(
+            ChatMessage(isFromUser = true, prompt = "질문 질문 질문"),
+            ChatMessage(
+                isFromUser = false,
+                prompt = "대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답",
+            ),
         )
-    )
 
     Scaffold(
         topBar = {
@@ -69,10 +73,10 @@ fun MainScreen(
         },
     ) { padding ->
         Box(
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
         ) {
             MainContent(
-                chatList = chatList
+                chatList = chatList,
             )
         }
     }
@@ -92,31 +96,34 @@ private fun MainTopBar(
         actions = {
             IconButton(onClick = onHistoryClick) {
                 Icon(
-                    Icons.Default.MoreVert, contentDescription = "History"
+                    Icons.Default.MoreVert,
+                    contentDescription = "History",
                 )
             }
-        }
+        },
     )
 }
 
 @Composable
 fun MainContent(chatList: List<ChatMessage>) {
     Column(
-        modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Bottom,
     ) {
         var text by remember { mutableStateOf("") }
 
         LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            reverseLayout = true
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+            reverseLayout = true,
         ) {
             itemsIndexed(chatList) { index, chat ->
                 if (chat.isFromUser) {
                     UserChatItem(
-                        prompt = chat.prompt
+                        prompt = chat.prompt,
                     )
                 } else {
                     ModelChatItem(response = chat.prompt)
@@ -125,20 +132,22 @@ fun MainContent(chatList: List<ChatMessage>) {
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-
             Spacer(modifier = Modifier.width(8.dp))
 
-            TextField(modifier = Modifier.weight(1f),
+            TextField(
+                modifier = Modifier.weight(1f),
                 value = text,
                 onValueChange = { newText -> text = newText },
                 placeholder = {
                     Text(text = "검색")
-                })
+                },
+            )
 
             Spacer(modifier = Modifier.width(8.dp))
 
@@ -146,7 +155,7 @@ fun MainContent(chatList: List<ChatMessage>) {
                 modifier = Modifier.size(40.dp),
                 imageVector = Icons.Rounded.Send,
                 contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -155,17 +164,18 @@ fun MainContent(chatList: List<ChatMessage>) {
 @Composable
 fun UserChatItem(prompt: String) {
     Column(
-        modifier = Modifier.padding(start = 100.dp, bottom = 16.dp)
+        modifier = Modifier.padding(start = 100.dp, bottom = 16.dp),
     ) {
         Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(16.dp),
             text = prompt,
             fontSize = 17.sp,
-            color = MaterialTheme.colorScheme.onPrimary
+            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }
@@ -173,17 +183,18 @@ fun UserChatItem(prompt: String) {
 @Composable
 fun ModelChatItem(response: String) {
     Column(
-        modifier = Modifier.padding(end = 100.dp, bottom = 16.dp)
+        modifier = Modifier.padding(end = 100.dp, bottom = 16.dp),
     ) {
         Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Green)
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Green)
+                    .padding(16.dp),
             text = response,
             fontSize = 17.sp,
-            color = MaterialTheme.colorScheme.onPrimary
+            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }

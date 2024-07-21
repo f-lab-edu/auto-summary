@@ -16,5 +16,4 @@ fun HistoryScreen(
     onSummaryClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
 }

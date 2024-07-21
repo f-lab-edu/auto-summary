@@ -16,5 +16,4 @@ fun SummaryScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
 }

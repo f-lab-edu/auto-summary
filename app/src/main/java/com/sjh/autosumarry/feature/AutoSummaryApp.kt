@@ -26,7 +26,9 @@ fun AutoSummaryNavHost(
     val navController = rememberNavController()
 
     NavHost(
-        navController = navController, startDestination = startDestination, modifier = modifier
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier,
     ) {
         mainScreen(onHistoryClick = navController::navigateToHistory)
         historyScreen(onSummaryClick = navController::navigateToSummary)

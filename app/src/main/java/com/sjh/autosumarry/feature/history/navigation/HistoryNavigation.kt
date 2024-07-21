@@ -9,6 +9,7 @@ import com.sjh.autosumarry.feature.history.HistoryRoute
 const val HISTORY_ROUTE = "/history"
 
 fun NavController.navigateToHistory() = navigate(HISTORY_ROUTE)
+
 fun NavGraphBuilder.historyScreen(
     onSummaryClick: () -> Unit,
     modifier: Modifier = Modifier,

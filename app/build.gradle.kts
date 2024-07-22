@@ -1,6 +1,7 @@
 plugins {
-    alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.klint)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
@@ -53,12 +54,12 @@ android {
 }
 
 dependencies {
+    ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.android)
-    implementation(libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
 
-    implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
 
     implementation(libs.androidx.core.ktx)

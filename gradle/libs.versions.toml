@@ -9,7 +9,7 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.3"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
-klint = "12.1.1"
+ktlint = "12.1.1"
 orbit = "8.0.0"
 navigation = "2.7.7"
 material = "1.13.0-alpha04"
@@ -20,7 +20,7 @@ logger = "2.2.0"
 hilt = "2.51.1"
 hiltNavigationCompose = "1.2.0"
 room = "2.6.1"
-ksp = "1.9.22-1.0.16"
+ksp = "1.9.22-1.0.18"
 [libraries]
 #
 orbit-compose = { module = "org.orbit-mvi:orbit-compose", version.ref = "orbit" }
@@ -77,9 +77,11 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-klint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "klint"}
+android-library = { id = "com.android.library", version.ref = "agp" }
+
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+klint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint"}
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

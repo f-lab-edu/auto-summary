@@ -1,4 +1,4 @@
-package com.sjh.autosumarry.feature.main
+package com.sjh.autosummary.feature.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,20 +34,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sjh.autosumarry.core.designsystem.theme.AutoSumarryTheme
+import com.sjh.autosummary.R
+import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
+import com.sjh.autosummary.core.model.ChatMessage
 
-data class ChatMessage(val isFromUser: Boolean, val prompt: String)
 
 @Composable
 fun MainRoute(
     onHistoryClick: () -> Unit,
+    messageList : List<ChatMessage>,
     modifier: Modifier = Modifier,
 ) {
+//    val messageList =
+//        listOf(
+//            ChatMessage(isFromUser = true, prompt = "질문 질문 질문"),
+//            ChatMessage(
+//                isFromUser = false,
+//                prompt = "대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답",
+//            ),
+//        )
     MainScreen(
         onHistoryClick = onHistoryClick,
+        messageList = messageList,
         modifier = modifier,
     )
 }
@@ -56,27 +67,20 @@ fun MainRoute(
 @Composable
 fun MainScreen(
     onHistoryClick: () -> Unit,
+    messageList : List<ChatMessage>,
     modifier: Modifier = Modifier,
 ) {
-    val chatList =
-        listOf(
-            ChatMessage(isFromUser = true, prompt = "질문 질문 질문"),
-            ChatMessage(
-                isFromUser = false,
-                prompt = "대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답",
-            ),
-        )
-
     Scaffold(
         topBar = {
             MainTopBar(onHistoryClick = onHistoryClick)
         },
+        modifier = modifier
     ) { padding ->
         Box(
             modifier = Modifier.padding(padding),
         ) {
             MainContent(
-                chatList = chatList,
+                messageList = messageList,
             )
         }
     }
@@ -96,7 +100,7 @@ private fun MainTopBar(
         actions = {
             IconButton(onClick = onHistoryClick) {
                 Icon(
-                    Icons.Default.MoreVert,
+                    painter = painterResource(id = R.drawable.ic_history),
                     contentDescription = "History",
                 )
             }
@@ -105,7 +109,7 @@ private fun MainTopBar(
 }
 
 @Composable
-fun MainContent(chatList: List<ChatMessage>) {
+fun MainContent(messageList: List<ChatMessage>) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Bottom,
@@ -114,28 +118,28 @@ fun MainContent(chatList: List<ChatMessage>) {
 
         LazyColumn(
             modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             reverseLayout = true,
         ) {
-            itemsIndexed(chatList) { index, chat ->
-                if (chat.isFromUser) {
+            itemsIndexed(messageList) { index, message ->
+                if (message.isFromUser) {
                     UserChatItem(
-                        question = chat.prompt,
+                        question = message.prompt,
                     )
                 } else {
-                    ModelChatItem(response = chat.prompt)
+                    ModelChatItem(response = message.prompt)
                 }
             }
         }
 
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer(modifier = Modifier.width(8.dp))
@@ -168,11 +172,11 @@ fun UserChatItem(question: String) {
     ) {
         Text(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(16.dp),
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(16.dp),
             text = question,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
@@ -187,11 +191,11 @@ fun ModelChatItem(response: String) {
     ) {
         Text(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Green)
-                    .padding(16.dp),
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Green)
+                .padding(16.dp),
             text = response,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
@@ -202,9 +206,10 @@ fun ModelChatItem(response: String) {
 @Preview
 @Composable
 private fun MainScreenPreview() {
-    AutoSumarryTheme {
+    AutoSummaryTheme {
         MainScreen(
             onHistoryClick = {},
+            messageList = listOf()
         )
     }
 }
@@ -212,7 +217,7 @@ private fun MainScreenPreview() {
 @Preview
 @Composable
 private fun UserChatItemPreview() {
-    AutoSumarryTheme {
+    AutoSummaryTheme {
         UserChatItem("user")
     }
 }
@@ -220,7 +225,7 @@ private fun UserChatItemPreview() {
 @Preview
 @Composable
 private fun UserModelChatItemPreview() {
-    AutoSumarryTheme {
+    AutoSummaryTheme {
         ModelChatItem("user")
     }
 }

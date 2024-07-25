@@ -1,10 +1,10 @@
-package com.sjh.autosumarry.feature.summary.navigation
+package com.sjh.autosummary.feature.summary.navigation
 
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.sjh.autosumarry.feature.summary.SummaryRoute
+import com.sjh.autosummary.feature.summary.SummaryRoute
 
 const val SUMMARY_ROUTE = "/summary"
 

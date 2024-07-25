@@ -1,4 +1,4 @@
-package com.sjh.autosumarry.feature.summary
+package com.sjh.autosummary.feature.summary
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

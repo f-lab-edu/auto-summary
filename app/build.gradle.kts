@@ -2,17 +2,18 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.klint)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.sjh.autosumarry"
+    namespace = "com.sjh.autosummary"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sjh.autosumarry"
+        applicationId = "com.sjh.autosummary"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -54,6 +55,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlin.serialization)
+
     ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

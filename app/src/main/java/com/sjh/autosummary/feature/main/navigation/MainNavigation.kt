@@ -8,13 +8,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sjh.autosummary.core.model.ChatMessage
-import com.sjh.autosummary.feature.history.navigation.navigateToHistory
 import com.sjh.autosummary.feature.main.MainRoute
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
 const val MAIN_ROUTE = "/main"
-const val DATA_KEY = "messagelist"
+const val HISTORYDATA_KEY = "messagelist"
 
 fun NavController.navigateToMain(data: List<ChatMessage>) {
     val json = Uri.encode(Json.encodeToString(ListSerializer(ChatMessage.serializer()), data))
@@ -23,31 +22,21 @@ fun NavController.navigateToMain(data: List<ChatMessage>) {
 
 fun NavGraphBuilder.mainScreen(
     onHistoryClick: () -> Unit,
+    dataKey: String,
     modifier: Modifier = Modifier,
-    dataKey: String? = null,
 ) {
-    if (dataKey != null) {
-        composable(
-            route = "$MAIN_ROUTE/{$dataKey}",
-            arguments = listOf(navArgument(dataKey) { type = NavType.StringType }),
-        ) { backStackEntry ->
-            val json = backStackEntry.arguments?.getString(dataKey)
-            val chatList =
-                json?.let { Json.decodeFromString(ListSerializer(ChatMessage.serializer()), it) }
-            MainRoute(
-                onHistoryClick = onHistoryClick,
-                messageList = chatList ?: emptyList(),
-                modifier = modifier
-            )
-        }
-    } else {
-        composable(route = MAIN_ROUTE) {
-            MainRoute(
-                onHistoryClick = onHistoryClick,
-                messageList = emptyList(), // 기본값 설정
-                modifier = modifier
-            )
-        }
+    composable(
+        route = "$MAIN_ROUTE/{$HISTORYDATA_KEY}",
+        arguments = listOf(navArgument(dataKey) { type = NavType.StringType }),
+    ) { backStackEntry ->
+        val json = backStackEntry.arguments?.getString(dataKey)
+        val chatList =
+            json?.let { Json.decodeFromString(ListSerializer(ChatMessage.serializer()), it) }
+        MainRoute(
+            onHistoryClick = onHistoryClick,
+            messageList = chatList ?: emptyList(),
+            modifier = modifier
+        )
     }
 
 }

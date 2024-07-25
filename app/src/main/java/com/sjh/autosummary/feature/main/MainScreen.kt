@@ -46,7 +46,7 @@ import com.sjh.autosummary.core.model.ChatMessage
 @Composable
 fun MainRoute(
     onHistoryClick: () -> Unit,
-    messageList : List<ChatMessage>,
+    messageList: List<ChatMessage>,
     modifier: Modifier = Modifier,
 ) {
 //    val messageList =
@@ -67,7 +67,7 @@ fun MainRoute(
 @Composable
 fun MainScreen(
     onHistoryClick: () -> Unit,
-    messageList : List<ChatMessage>,
+    messageList: List<ChatMessage>,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -114,7 +114,7 @@ fun MainContent(messageList: List<ChatMessage>) {
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Bottom,
     ) {
-        var text by remember { mutableStateOf("") }
+        var searchWord by remember { mutableStateOf("") }
 
         LazyColumn(
             modifier =
@@ -126,11 +126,11 @@ fun MainContent(messageList: List<ChatMessage>) {
         ) {
             itemsIndexed(messageList) { index, message ->
                 if (message.isFromUser) {
-                    UserChatItem(
-                        question = message.prompt,
+                    UserMessageBubble(
+                        message = message.prompt,
                     )
                 } else {
-                    ModelChatItem(response = message.prompt)
+                    AiMessageBubble(message = message.prompt)
                 }
             }
         }
@@ -146,8 +146,8 @@ fun MainContent(messageList: List<ChatMessage>) {
 
             TextField(
                 modifier = Modifier.weight(1f),
-                value = text,
-                onValueChange = { newText -> text = newText },
+                value = searchWord,
+                onValueChange = { newText -> searchWord = newText },
                 placeholder = {
                     Text(text = "검색")
                 },
@@ -166,7 +166,7 @@ fun MainContent(messageList: List<ChatMessage>) {
 }
 
 @Composable
-fun UserChatItem(question: String) {
+fun UserMessageBubble(message: String) {
     Column(
         modifier = Modifier.padding(start = 100.dp, bottom = 16.dp),
     ) {
@@ -177,7 +177,7 @@ fun UserChatItem(question: String) {
                 .clip(RoundedCornerShape(12.dp))
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(16.dp),
-            text = question,
+            text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
         )
@@ -185,7 +185,7 @@ fun UserChatItem(question: String) {
 }
 
 @Composable
-fun ModelChatItem(response: String) {
+fun AiMessageBubble(message: String) {
     Column(
         modifier = Modifier.padding(end = 100.dp, bottom = 16.dp),
     ) {
@@ -196,7 +196,7 @@ fun ModelChatItem(response: String) {
                 .clip(RoundedCornerShape(12.dp))
                 .background(Green)
                 .padding(16.dp),
-            text = response,
+            text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
         )
@@ -218,7 +218,7 @@ private fun MainScreenPreview() {
 @Composable
 private fun UserChatItemPreview() {
     AutoSummaryTheme {
-        UserChatItem("user")
+        UserMessageBubble("user")
     }
 }
 
@@ -226,6 +226,6 @@ private fun UserChatItemPreview() {
 @Composable
 private fun UserModelChatItemPreview() {
     AutoSummaryTheme {
-        ModelChatItem("user")
+        AiMessageBubble("user")
     }
 }

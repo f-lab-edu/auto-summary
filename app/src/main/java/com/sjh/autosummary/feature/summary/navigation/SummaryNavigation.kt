@@ -15,6 +15,6 @@ fun NavGraphBuilder.summaryScreen(
     modifier: Modifier = Modifier,
 ) {
     composable(route = SUMMARY_ROUTE) {
-        SummaryRoute(onBackClick)
+        SummaryRoute(onBackClick = onBackClick, modifier = modifier)
     }
 }

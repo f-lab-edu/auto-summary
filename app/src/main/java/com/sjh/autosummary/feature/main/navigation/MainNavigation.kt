@@ -35,8 +35,7 @@ fun NavGraphBuilder.mainScreen(
         MainRoute(
             onHistoryClick = onHistoryClick,
             messageList = chatList ?: emptyList(),
-            modifier = modifier
+            modifier = modifier,
         )
     }
-
 }

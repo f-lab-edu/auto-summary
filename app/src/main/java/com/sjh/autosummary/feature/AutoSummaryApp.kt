@@ -35,7 +35,7 @@ fun AutoSummaryNavHost(
         mainScreen(onHistoryClick = navController::navigateToHistory, dataKey = HISTORYDATA_KEY)
         historyScreen(
             onChatHistoryClick = { messageList -> navController.navigateToMain(messageList) },
-            onSummaryClick = navController::navigateToSummary
+            onSummaryClick = navController::navigateToSummary,
         )
         summaryScreen(onBackClick = navController::popBackStack)
     }

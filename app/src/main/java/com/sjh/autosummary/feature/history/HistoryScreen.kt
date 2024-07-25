@@ -44,7 +44,7 @@ fun HistoryRoute(
     HistoryScreen(
         onChatHistoryClick = onChatHistoryClick,
         onSummaryClick = onSummaryClick,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -54,17 +54,22 @@ fun HistoryScreen(
     onSummaryClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val chatList: List<ChatHistory> = listOf(
-        ChatHistory(
-            id = 0, date = "2024.07.24", name = "random", messageList = listOf(
-                ChatMessage(isFromUser = true, prompt = "질문 질문 질문"),
-                ChatMessage(
-                    isFromUser = false,
-                    prompt = "대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답",
-                ),
-            )
+    val chatList: List<ChatHistory> =
+        listOf(
+            ChatHistory(
+                id = 0,
+                date = "2024.07.24",
+                name = "random",
+                messageList =
+                    listOf(
+                        ChatMessage(isFromUser = true, prompt = "질문 질문 질문"),
+                        ChatMessage(
+                            isFromUser = false,
+                            prompt = "대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답",
+                        ),
+                    ),
+            ),
         )
-    )
 
     Scaffold(
         topBar = {
@@ -116,14 +121,17 @@ fun HistroyContent(
         verticalArrangement = Arrangement.Bottom,
     ) {
         LazyColumn(
-            modifier = modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+            modifier =
+                modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
         ) {
             itemsIndexed(chatList) { idx, chat ->
                 ChatHistoryItem(
-                    onChatHistoryClick = onChatHistoryClick, chat = chat, modifier = modifier
+                    onChatHistoryClick = onChatHistoryClick,
+                    chat = chat,
+                    modifier = modifier,
                 )
             }
         }
@@ -136,32 +144,41 @@ fun ChatHistoryItem(
     chat: ChatHistory,
     modifier: Modifier,
 ) {
-    Column(modifier = modifier
-        .fillMaxWidth()
-        .wrapContentHeight()
-        .clickable { onChatHistoryClick(chat.messageList) }) {
-        Row(
-            modifier = modifier
+    Column(
+        modifier =
+            modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .padding(horizontal = 10.dp),
+                .wrapContentHeight()
+                .clickable { onChatHistoryClick(chat.messageList) },
+    ) {
+        Row(
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                modifier = Modifier.wrapContentSize(), text = chat.date, fontSize = 16.sp
+                modifier = Modifier.wrapContentSize(),
+                text = chat.date,
+                fontSize = 16.sp,
             )
 
             Text(
-                modifier = Modifier.wrapContentSize(), text = chat.name, fontSize = 16.sp
+                modifier = Modifier.wrapContentSize(),
+                text = chat.name,
+                fontSize = 16.sp,
             )
         }
 
         Spacer(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(color = Color.DarkGray)
+            modifier =
+                modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(color = Color.DarkGray),
         )
     }
 }

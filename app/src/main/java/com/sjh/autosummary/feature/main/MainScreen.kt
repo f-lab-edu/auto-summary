@@ -42,7 +42,6 @@ import com.sjh.autosummary.R
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatMessage
 
-
 @Composable
 fun MainRoute(
     onHistoryClick: () -> Unit,
@@ -74,7 +73,7 @@ fun MainScreen(
         topBar = {
             MainTopBar(onHistoryClick = onHistoryClick)
         },
-        modifier = modifier
+        modifier = modifier,
     ) { padding ->
         Box(
             modifier = Modifier.padding(padding),
@@ -118,10 +117,10 @@ fun MainContent(messageList: List<ChatMessage>) {
 
         LazyColumn(
             modifier =
-            Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
             reverseLayout = true,
         ) {
             itemsIndexed(messageList) { index, message ->
@@ -137,9 +136,9 @@ fun MainContent(messageList: List<ChatMessage>) {
 
         Row(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer(modifier = Modifier.width(8.dp))
@@ -172,11 +171,11 @@ fun UserMessageBubble(message: String) {
     ) {
         Text(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(16.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(16.dp),
             text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
@@ -191,11 +190,11 @@ fun AiMessageBubble(message: String) {
     ) {
         Text(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Green)
-                .padding(16.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Green)
+                    .padding(16.dp),
             text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
@@ -209,7 +208,7 @@ private fun MainScreenPreview() {
     AutoSummaryTheme {
         MainScreen(
             onHistoryClick = {},
-            messageList = listOf()
+            messageList = listOf(),
         )
     }
 }

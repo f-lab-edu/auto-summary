@@ -72,11 +72,12 @@ fun HistoryScreen(
         },
     ) { padding ->
         Box(
-            modifier = Modifier.padding(padding),
+            modifier = modifier.padding(padding),
         ) {
             HistroyContent(
                 onChatHistoryClick = onChatHistoryClick,
                 chatList = chatList,
+                modifier = modifier,
             )
         }
     }

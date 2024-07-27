@@ -1,4 +1,4 @@
-package com.sjh.autosumarry
+package com.sjh.autosummary
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

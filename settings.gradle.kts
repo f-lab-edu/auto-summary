@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AutoSumarry"
+rootProject.name = "AutoSummary"
 include(":app")

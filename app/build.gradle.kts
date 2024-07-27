@@ -1,15 +1,19 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.klint)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.sjh.autosumarry"
+    namespace = "com.sjh.autosummary"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sjh.autosumarry"
+        applicationId = "com.sjh.autosummary"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -41,16 +45,25 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/gradle/incremental.annotation.processors"
         }
     }
 }
 
 dependencies {
+    implementation(libs.kotlin.serialization)
+
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

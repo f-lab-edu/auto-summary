@@ -1,4 +1,4 @@
-package com.sjh.autosumarry.ui.theme
+package com.sjh.autosummary.core.designsystem.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -34,7 +34,7 @@ private val LightColorScheme =
     )
 
 @Composable
-fun AutoSumarryTheme(
+fun AutoSummaryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,

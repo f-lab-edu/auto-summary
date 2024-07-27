@@ -1,4 +1,4 @@
-package com.sjh.autosumarry.ui.theme
+package com.sjh.autosummary.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 

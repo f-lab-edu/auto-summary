@@ -15,11 +15,15 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class ChatRepositoryImpl
-    @Inject
-    constructor(
-        private val networkDataSource: NetworkDataSource,
-    ) : ChatRepository {
-        override fun createChatCompletion(chatRequest: ChatRequest): Flow<ChatResponse> =
-            networkDataSource.createChatCompletion(chatRequest.toGptChatRequest())
-                .map(GptChatResponse::toChatResponse).catch { e -> throw e }.flowOn(Dispatchers.IO)
-    }
+@Inject
+constructor(
+    private val networkDataSource: NetworkDataSource,
+) : ChatRepository {
+    override fun createChatCompletion(chatRequest: ChatRequest): Flow<ChatResponse> =
+        networkDataSource.createChatCompletion(
+            chatRequest = chatRequest.toGptChatRequest()
+        )
+            .map(GptChatResponse::toChatResponse)
+            .catch { e -> throw e }
+            .flowOn(Dispatchers.IO)
+}

@@ -24,8 +24,10 @@ class MainViewModel
         fun requestQuestion(requestMessage: ChatRequest) {
             chatMessages.add(requestMessage.requestMessage)
             viewModelScope.launch {
-                chatRepository.createChatCompletion(chatRequest = requestMessage).toDataState()
-                    .cancellable().collectLatest { response ->
+                chatRepository.createChatCompletion(chatRequest = requestMessage)
+                    .toDataState()
+                    .cancellable()
+                    .collectLatest { response ->
                         when (response) {
                             DataState.Loading -> {
                                 TODO("로딩 화면 ")

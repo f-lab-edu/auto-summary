@@ -38,15 +38,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.sjh.autosummary.R
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatMessage
 
+// Todo : messageList를 인덱스나 날짜로 변경해서 MainViewModel에서 db를 조회하는 방식으로 변경
 @Composable
 fun MainRoute(
     onHistoryClick: () -> Unit,
     messageList: List<ChatMessage>,
     modifier: Modifier = Modifier,
+    viewModel: MainViewModel = hiltViewModel(),
 ) {
 //    val messageList =
 //        listOf(

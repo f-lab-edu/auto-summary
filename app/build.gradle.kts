@@ -55,6 +55,9 @@ android {
 }
 
 dependencies {
+    implementation(libs.okhttp)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.kotlin.serialization)
 
     ksp(libs.hilt.android.compiler)

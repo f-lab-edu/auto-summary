@@ -11,7 +11,6 @@ sealed interface DataState<out T> {
     data class Error(val exception: Throwable) : DataState<Nothing>
 
     data object Loading : DataState<Nothing>
-
 }
 
 fun <T> Flow<T>.toDataState(): Flow<DataState<T>> =

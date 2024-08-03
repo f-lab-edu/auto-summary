@@ -25,7 +25,8 @@ class RetrofitGpt
         json: Json,
         okhttpCallFactory: dagger.Lazy<Call.Factory>,
     ) : NetworkDataSource {
-        private val networkApi = Retrofit
+        private val networkApi =
+            Retrofit
                 .Builder()
                 .baseUrl(BASE_URL)
                 .callFactory { okhttpCallFactory.get().newCall(it) }
@@ -38,11 +39,10 @@ class RetrofitGpt
                 try {
                     networkApi.createChatCompletion(
                         authorization = "Bearer $GPT_API_KEY",
-                        chatRequest = chatRequest
+                        chatRequest = chatRequest,
                     )
                 } catch (e: Exception) {
                     Result.failure(e)
                 }
             }
-
-}
+    }

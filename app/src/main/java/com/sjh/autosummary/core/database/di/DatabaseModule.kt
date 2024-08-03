@@ -15,27 +15,23 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-
     @Provides
     @Singleton
     fun providesLocalDatabase(
         @ApplicationContext context: Context,
-    ): RoomDatabase = Room.databaseBuilder(
-        context,
-        RoomDatabase::class.java,
-        "autoSummaryDB.db",
-    ).fallbackToDestructiveMigration()
-        .build()
+    ): RoomDatabase =
+        Room.databaseBuilder(
+            context,
+            RoomDatabase::class.java,
+            "autoSummaryDB.db",
+        ).fallbackToDestructiveMigration()
+            .build()
 
     @Provides
     @Singleton
-    fun providesChatHistoryDao(
-        roomDatabase: RoomDatabase,
-    ): ChatHistoryDao = roomDatabase.chatHistoryDao()
+    fun providesChatHistoryDao(roomDatabase: RoomDatabase): ChatHistoryDao = roomDatabase.chatHistoryDao()
 
     @Provides
     @Singleton
-    fun providesMessageContentDao(
-        roomDatabase: RoomDatabase,
-    ): MessageContentDao = roomDatabase.messageContentDao()
+    fun providesMessageContentDao(roomDatabase: RoomDatabase): MessageContentDao = roomDatabase.messageContentDao()
 }

@@ -19,69 +19,70 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel
-@Inject
-constructor(
-    private val chatRepository: ChatRepository,
-    private val historyRepository: HistoryRepository,
-) : ViewModel() {
-    private val chatMessages: MutableList<MessageContent> = mutableListOf()
-    private var latestChatHistoryId: Long?= null
+    @Inject
+    constructor(
+        private val chatRepository: ChatRepository,
+        private val historyRepository: HistoryRepository,
+    ) : ViewModel() {
+        private val chatMessages: MutableList<MessageContent> = mutableListOf()
+        private var latestChatHistoryId: Long? = null
 
-    init {
-        initChat()
-    }
+        init {
+            initChat()
+        }
 
-    fun initChat() {
-        viewModelScope.launch {
-            latestChatHistoryId = historyRepository.insertChatHistory(
-                ChatHistory(
-                    date = getCurrentDate(),
-                    messageList = listOf()
-                )
-            )
+        fun initChat() {
+            viewModelScope.launch {
+                latestChatHistoryId =
+                    historyRepository.insertChatHistory(
+                        ChatHistory(
+                            date = getCurrentDate(),
+                            messageList = listOf(),
+                        ),
+                    )
 
-            latestChatHistoryId?.let {
-                val initialChatHistory = historyRepository.getChatHistory(it)
-                /* Todo : State 초기화 */
+                latestChatHistoryId?.let {
+                    val initialChatHistory = historyRepository.getChatHistory(it)
+                    // Todo : State 초기화
+                }
             }
         }
-    }
 
-    fun getChatHistory(chatHistoryId: Long) {
-        viewModelScope.launch {
-            val pastChatHistory = historyRepository.getChatHistory(chatHistoryId)
-            /* Todo : State 초기화 */
+        fun getChatHistory(chatHistoryId: Long) {
+            viewModelScope.launch {
+                val pastChatHistory = historyRepository.getChatHistory(chatHistoryId)
+                // Todo : State 초기화
+            }
         }
-    }
 
-    fun requestQuestion(requestMessage: ChatRequest) {
-        chatMessages.add(requestMessage.requestMessage)
-        viewModelScope.launch {
-            chatRepository.createChatCompletion(chatRequest = requestMessage)
-                .cancellable()
-                .collectLatest { response ->
-                    when (response) {
-                        LoadState.InProgress -> {
-                            TODO("로딩 화면 ")
-                        }
-
-                        is LoadState.Succeeded -> {
-                            response.data.responseMessage?.let { message ->
-                                chatMessages.add(message)
+        fun requestQuestion(requestMessage: ChatRequest) {
+            chatMessages.add(requestMessage.requestMessage)
+            viewModelScope.launch {
+                chatRepository.createChatCompletion(chatRequest = requestMessage)
+                    .cancellable()
+                    .collectLatest { response ->
+                        when (response) {
+                            LoadState.InProgress -> {
+                                TODO("로딩 화면 ")
                             }
-                            TODO("UI state 갱신 ")
-                        }
 
-                        is LoadState.Failed -> {
-                            TODO("답변 실패 ")
+                            is LoadState.Succeeded -> {
+                                response.data.responseMessage?.let { message ->
+                                    chatMessages.add(message)
+                                }
+                                TODO("UI state 갱신 ")
+                            }
+
+                            is LoadState.Failed -> {
+                                TODO("답변 실패 ")
+                            }
                         }
                     }
-                }
+            }
+        }
+
+        private fun getCurrentDate(): String {
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            return dateFormat.format(Date())
         }
     }
-
-    private fun getCurrentDate(): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        return dateFormat.format(Date())
-    }
-}

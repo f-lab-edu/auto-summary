@@ -14,14 +14,14 @@ import com.sjh.autosummary.core.model.ChatRoleType
             entity = ChatHistoryEntity::class,
             parentColumns = ["id"],
             childColumns = ["chat_history_id"],
-            onDelete = ForeignKey.CASCADE
-        )
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index(value = ["chat_history_id"])]
+    indices = [Index(value = ["chat_history_id"])],
 )
 data class MessageContentEntity(
     @PrimaryKey(autoGenerate = true) val messageId: Long = 0,
     @ColumnInfo(name = "chat_history_id") val chatHistoryId: Long,
     var content: String,
-    var role: ChatRoleType
+    var role: ChatRoleType,
 )

@@ -7,5 +7,5 @@ import androidx.room.PrimaryKey
 data class ChatHistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val date: String,
-    val name: String = ""
+    val name: String = "",
 )

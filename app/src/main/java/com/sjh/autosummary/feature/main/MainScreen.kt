@@ -57,7 +57,8 @@ fun MainRoute(
     }
 
     MainScreen(
-        messageList = listOf(), /* Todo : state로 변경 */
+        // Todo : state로 변경
+        messageList = listOf(),
         onHistoryClick = onHistoryClick,
         modifier = modifier,
     )
@@ -117,10 +118,10 @@ fun MainContent(messageList: List<MessageContent>) {
 
         LazyColumn(
             modifier =
-            Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
             reverseLayout = true,
         ) {
             itemsIndexed(messageList) { index, message ->
@@ -137,15 +138,14 @@ fun MainContent(messageList: List<MessageContent>) {
 
                     ChatRoleType.SYSTEM -> {}
                 }
-
             }
         }
 
         Row(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer(modifier = Modifier.width(8.dp))
@@ -178,11 +178,11 @@ fun UserMessageBubble(message: String) {
     ) {
         Text(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(16.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(16.dp),
             text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
@@ -197,11 +197,11 @@ fun AiMessageBubble(message: String) {
     ) {
         Text(
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Green)
-                .padding(16.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Green)
+                    .padding(16.dp),
             text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,

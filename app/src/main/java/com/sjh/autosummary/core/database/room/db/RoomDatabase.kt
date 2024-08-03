@@ -7,13 +7,13 @@ import com.sjh.autosummary.core.database.room.dao.MessageContentDao
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
 
-
 @Database(
     entities = [ChatHistoryEntity::class, MessageContentEntity::class],
     version = 1,
-    exportSchema = true
+    exportSchema = true,
 )
 abstract class RoomDatabase : RoomDatabase() {
     abstract fun chatHistoryDao(): ChatHistoryDao
+
     abstract fun messageContentDao(): MessageContentDao
 }

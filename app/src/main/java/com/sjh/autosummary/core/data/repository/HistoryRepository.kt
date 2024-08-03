@@ -5,7 +5,7 @@ import com.sjh.autosummary.core.model.ChatHistory
 import kotlinx.coroutines.flow.Flow
 
 interface HistoryRepository {
-    suspend fun insertChatHistory(chatHistory: ChatHistory) : Long?
+    suspend fun insertChatHistory(chatHistory: ChatHistory): Long?
 
     fun getChatHistory(chatHistoryId: Long): Flow<LoadState<ChatHistory>>
 

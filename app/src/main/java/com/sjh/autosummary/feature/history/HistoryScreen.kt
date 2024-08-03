@@ -46,7 +46,8 @@ fun HistoryRoute(
     HistoryScreen(
         onChatHistoryClick = onChatHistoryClick,
         onSummaryClick = onSummaryClick,
-        chatHistoryList = listOf(), /* Todo : State로 변경 */
+        // Todo : State로 변경
+        chatHistoryList = listOf(),
         modifier = modifier,
     )
 }
@@ -58,7 +59,6 @@ fun HistoryScreen(
     chatHistoryList: List<ChatHistory>,
     modifier: Modifier = Modifier,
 ) {
-
     Scaffold(
         topBar = {
             HistoryTopBar(onSummaryClick = onSummaryClick)
@@ -110,10 +110,10 @@ fun HistroyContent(
     ) {
         LazyColumn(
             modifier =
-            modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
         ) {
             itemsIndexed(chatHistoryList) { idx, chat ->
                 ChatHistoryItem(
@@ -134,21 +134,21 @@ fun ChatHistoryItem(
 ) {
     Column(
         modifier =
-        modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .clickable {
-                chat.id?.let {
-                    onChatHistoryClick(it)
-                }
-            },
+            modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .clickable {
+                    chat.id?.let {
+                        onChatHistoryClick(it)
+                    }
+                },
     ) {
         Row(
             modifier =
-            modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .padding(horizontal = 10.dp),
+                modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -167,10 +167,10 @@ fun ChatHistoryItem(
 
         Spacer(
             modifier =
-            modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(color = Color.DarkGray),
+                modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(color = Color.DarkGray),
         )
     }
 }
@@ -182,7 +182,7 @@ private fun HistoryScreenPreview() {
         HistoryScreen(
             onChatHistoryClick = { a -> },
             onSummaryClick = {},
-            chatHistoryList = listOf()
+            chatHistoryList = listOf(),
         )
     }
 }

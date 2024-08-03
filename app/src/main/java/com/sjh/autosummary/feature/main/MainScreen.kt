@@ -41,27 +41,24 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sjh.autosummary.R
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
-import com.sjh.autosummary.core.model.ChatMessage
+import com.sjh.autosummary.core.model.ChatRoleType
+import com.sjh.autosummary.core.model.MessageContent
 
 // Todo : messageList를 인덱스나 날짜로 변경해서 MainViewModel에서 db를 조회하는 방식으로 변경
 @Composable
 fun MainRoute(
     onHistoryClick: () -> Unit,
-    messageList: List<ChatMessage>,
+    chatHistoryId: Long?,
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
-//    val messageList =
-//        listOf(
-//            ChatMessage(isFromUser = true, prompt = "질문 질문 질문"),
-//            ChatMessage(
-//                isFromUser = false,
-//                prompt = "대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답",
-//            ),
-//        )
+    chatHistoryId?.let {
+        viewModel.getChatHistory(it)
+    }
+
     MainScreen(
+        messageList = listOf(), /* Todo : state로 변경 */
         onHistoryClick = onHistoryClick,
-        messageList = messageList,
         modifier = modifier,
     )
 }
@@ -69,7 +66,7 @@ fun MainRoute(
 @Composable
 fun MainScreen(
     onHistoryClick: () -> Unit,
-    messageList: List<ChatMessage>,
+    messageList: List<MessageContent>,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -111,7 +108,7 @@ private fun MainTopBar(
 }
 
 @Composable
-fun MainContent(messageList: List<ChatMessage>) {
+fun MainContent(messageList: List<MessageContent>) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Bottom,
@@ -120,28 +117,35 @@ fun MainContent(messageList: List<ChatMessage>) {
 
         LazyColumn(
             modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             reverseLayout = true,
         ) {
             itemsIndexed(messageList) { index, message ->
-                if (message.isFromUser) {
-                    UserMessageBubble(
-                        message = message.prompt,
-                    )
-                } else {
-                    AiMessageBubble(message = message.prompt)
+                when (message.role) {
+                    ChatRoleType.USER -> {
+                        UserMessageBubble(
+                            message = message.content,
+                        )
+                    }
+
+                    ChatRoleType.GPT -> {
+                        AiMessageBubble(message = message.content)
+                    }
+
+                    ChatRoleType.SYSTEM -> {}
                 }
+
             }
         }
 
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer(modifier = Modifier.width(8.dp))
@@ -174,11 +178,11 @@ fun UserMessageBubble(message: String) {
     ) {
         Text(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(16.dp),
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(16.dp),
             text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
@@ -193,11 +197,11 @@ fun AiMessageBubble(message: String) {
     ) {
         Text(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Green)
-                    .padding(16.dp),
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Green)
+                .padding(16.dp),
             text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,

@@ -13,5 +13,5 @@ import javax.inject.Singleton
 abstract class DataModule {
     @Binds
     @Singleton
-    internal abstract fun bindsChatRepository(chatRepositoryImpl: ChatRepositoryImpl): ChatRepository
+    abstract fun bindsChatRepository(chatRepositoryImpl: ChatRepositoryImpl): ChatRepository
 }

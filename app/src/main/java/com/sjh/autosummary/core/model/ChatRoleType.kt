@@ -9,8 +9,6 @@ enum class ChatRoleType(val role: String) {
     companion object {
         private val roleTypeList: List<ChatRoleType> = entries
 
-        fun getFromRole(role: String): ChatRoleType? {
-            return roleTypeList.find { it.role == role }
-        }
+        fun getFromRole(role: String): ChatRoleType? = roleTypeList.find { it.role == role }
     }
 }

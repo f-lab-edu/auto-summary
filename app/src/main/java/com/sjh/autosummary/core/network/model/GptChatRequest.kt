@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GptChatRequest(
-    var messages: List<GptMessageContent>,
-    var model: String,
+    val messages: List<GptMessageContent>,
+    val model: String,
 )

@@ -4,11 +4,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GptChatResponse(
-    var choices: List<GptChoice>,
+    val choices: List<GptChoice>,
 )
 
 @Serializable
 data class GptChoice(
-    var index: Int,
-    var message: GptMessageContent,
+    val index: Int,
+    val message: GptMessageContent,
 )

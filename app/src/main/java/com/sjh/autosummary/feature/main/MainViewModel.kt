@@ -2,8 +2,7 @@ package com.sjh.autosummary.feature.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sjh.autosummary.core.common.DataState
-import com.sjh.autosummary.core.common.toDataState
+import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.data.model.ChatRequest
 import com.sjh.autosummary.core.data.repository.ChatRepository
 import com.sjh.autosummary.core.model.MessageContent
@@ -19,32 +18,30 @@ class MainViewModel
     constructor(
         private val chatRepository: ChatRepository,
     ) : ViewModel() {
-        val chatMessages: MutableList<MessageContent> = mutableListOf()
+        private val chatMessages: MutableList<MessageContent> = mutableListOf()
 
         fun requestQuestion(requestMessage: ChatRequest) {
             chatMessages.add(requestMessage.requestMessage)
             viewModelScope.launch {
                 chatRepository.createChatCompletion(chatRequest = requestMessage)
-                    .toDataState()
                     .cancellable()
                     .collectLatest { response ->
                         when (response) {
-                            DataState.Loading -> {
+                            LoadState.InProgress -> {
                                 TODO("로딩 화면 ")
                             }
-
-                            is DataState.Success -> {
+                            is LoadState.Succeeded -> {
                                 response.data.responseMessage?.let { message ->
                                     chatMessages.add(message)
                                 }
                                 TODO("UI state 갱신 ")
                             }
-
-                            is DataState.Error -> {
+                            is LoadState.Failed -> {
                                 TODO("답변 실패 ")
                             }
                         }
                     }
             }
         }
-    }
+
+}

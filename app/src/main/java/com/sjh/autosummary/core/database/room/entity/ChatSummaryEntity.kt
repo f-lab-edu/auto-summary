@@ -11,5 +11,5 @@ data class ChatSummaryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
     val subTitle: String? = null,
-    @TypeConverters(Converter::class) val content: List<InformationForm>
+    @field:TypeConverters(Converter::class) val content: List<InformationForm>
 )

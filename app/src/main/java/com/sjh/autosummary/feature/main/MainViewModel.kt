@@ -21,6 +21,4 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val historyRepository: HistoryRepository,
-) : ViewModel() {
-
-}
+) : ViewModel()

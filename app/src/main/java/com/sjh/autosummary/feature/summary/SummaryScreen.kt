@@ -74,53 +74,51 @@ fun SummaryScreen(
                 id = 0L,
                 title = "제목 01",
                 subTitle = "부제목",
-                content =
-                    listOf(
+                content = listOf(
+                    InformationForm(
+                        head = "소제목",
+                        body = "내용 내용 내용 내용",
+                        informationForm =
                         InformationForm(
-                            head = "소제목",
-                            body = "내용 내용 내용 내용",
-                            informationForm =
-                                InformationForm(
-                                    head = "소소제목",
-                                    body = "자세한 내용, 자세한 내용",
-                                ),
-                        ),
-                        InformationForm(
-                            head = "소제목",
-                            body = "내용 내용 내용 내용",
-                            informationForm =
-                                InformationForm(
-                                    head = "소소제목",
-                                    body = "자세한 내용, 자세한 내용",
-                                ),
+                            head = "소소제목",
+                            body = "자세한 내용, 자세한 내용",
                         ),
                     ),
+                    InformationForm(
+                        head = "소제목",
+                        body = "내용 내용 내용 내용",
+                        informationForm =
+                        InformationForm(
+                            head = "소소제목",
+                            body = "자세한 내용, 자세한 내용",
+                        ),
+                    ),
+                ),
             ),
             ChatSummary(
                 id = 1L,
                 title = "제목 02",
                 subTitle = "부제목",
-                content =
-                    listOf(
+                content = listOf(
+                    InformationForm(
+                        head = "소제목",
+                        body = "내용 내용 내용 내용",
+                        informationForm =
                         InformationForm(
-                            head = "소제목",
-                            body = "내용 내용 내용 내용",
-                            informationForm =
-                                InformationForm(
-                                    head = "소소제목",
-                                    body = "자세한 내용, 자세한 내용",
-                                ),
-                        ),
-                        InformationForm(
-                            head = "소제목",
-                            body = "내용 내용 내용 내용",
-                            informationForm =
-                                InformationForm(
-                                    head = "소소제목",
-                                    body = "자세한 내용, 자세한 내용",
-                                ),
+                            head = "소소제목",
+                            body = "자세한 내용, 자세한 내용",
                         ),
                     ),
+                    InformationForm(
+                        head = "소제목",
+                        body = "내용 내용 내용 내용",
+                        informationForm =
+                        InformationForm(
+                            head = "소소제목",
+                            body = "자세한 내용, 자세한 내용",
+                        ),
+                    ),
+                ),
             ),
         )
 
@@ -130,10 +128,9 @@ fun SummaryScreen(
         },
     ) { padding ->
         Box(
-            modifier =
-                modifier
-                    .padding(padding)
-                    .fillMaxSize(),
+            modifier = modifier
+                .padding(padding)
+                .fillMaxSize(),
         ) {
             SummaryContent(
                 onChatSummaryClick = onChatSummaryClick,
@@ -177,11 +174,10 @@ fun SummaryContent(
         verticalArrangement = Arrangement.Bottom,
     ) {
         LazyColumn(
-            modifier =
-                modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+            modifier = modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
         ) {
             itemsIndexed(chatSummaryList) { idx, summary ->
                 SummaryInformation(
@@ -201,18 +197,16 @@ fun SummaryInformation(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .clickable { onChatSummaryClick(summary) },
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .clickable { onChatSummaryClick(summary) },
     ) {
         Row(
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 10.dp),
+            modifier = modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -224,11 +218,10 @@ fun SummaryInformation(
         }
 
         Spacer(
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(color = Color.DarkGray),
+            modifier = modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(color = Color.DarkGray),
         )
     }
 }
@@ -245,10 +238,9 @@ fun SummaryInformationDetail(
         },
     ) { padding ->
         Box(
-            modifier =
-                modifier
-                    .padding(padding)
-                    .fillMaxSize(),
+            modifier = modifier
+                .padding(padding)
+                .fillMaxSize(),
         ) {
             SummaryContentDetail(
                 summary = summary,
@@ -287,10 +279,9 @@ fun SummaryContentDetail(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.Top,
     ) {
         if (summary.subTitle != null) {
@@ -316,10 +307,9 @@ fun BasicInformationForm(
     val adjustedHeadFontSize = if (headFontSize >= 20) headFontSize else 20
 
     Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .padding(start = 6.dp, top = 4.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(start = 6.dp, top = 4.dp),
         verticalArrangement = Arrangement.Top,
     ) {
         Text(text = informationForm.head, modifier = modifier, fontSize = adjustedHeadFontSize.sp)
@@ -351,33 +341,32 @@ private fun SummaryContentDetailPreview() {
     AutoSummaryTheme {
         SummaryInformationDetail(
             onCloseClick = {},
-            summary =
-                ChatSummary(
-                    id = 0L,
-                    title = "제목 01",
-                    subTitle = "부제목",
-                    content =
-                        listOf(
-                            InformationForm(
-                                head = "소제목",
-                                body = "내용 내용 내용 내용",
-                                informationForm =
-                                    InformationForm(
-                                        head = "소소제목",
-                                        body = "자세한 내용, 자세한 내용",
-                                    ),
-                            ),
-                            InformationForm(
-                                head = "소제목",
-                                body = "내용 내용 내용 내용",
-                                informationForm =
-                                    InformationForm(
-                                        head = "소소제목",
-                                        body = "자세한 내용, 자세한 내용",
-                                    ),
-                            ),
+            summary = ChatSummary(
+                id = 0L,
+                title = "제목 01",
+                subTitle = "부제목",
+                content =
+                listOf(
+                    InformationForm(
+                        head = "소제목",
+                        body = "내용 내용 내용 내용",
+                        informationForm =
+                        InformationForm(
+                            head = "소소제목",
+                            body = "자세한 내용, 자세한 내용",
                         ),
+                    ),
+                    InformationForm(
+                        head = "소제목",
+                        body = "내용 내용 내용 내용",
+                        informationForm =
+                        InformationForm(
+                            head = "소소제목",
+                            body = "자세한 내용, 자세한 내용",
+                        ),
+                    ),
                 ),
+            ),
         )
     }
 }

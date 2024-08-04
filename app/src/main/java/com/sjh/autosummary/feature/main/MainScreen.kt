@@ -117,11 +117,10 @@ fun MainContent(messageList: List<MessageContent>) {
         var searchWord by remember { mutableStateOf("") }
 
         LazyColumn(
-            modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             reverseLayout = true,
         ) {
             itemsIndexed(messageList) { index, message ->
@@ -142,10 +141,9 @@ fun MainContent(messageList: List<MessageContent>) {
         }
 
         Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp, start = 4.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer(modifier = Modifier.width(8.dp))
@@ -177,12 +175,11 @@ fun UserMessageBubble(message: String) {
         modifier = Modifier.padding(start = 100.dp, bottom = 16.dp),
     ) {
         Text(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(16.dp),
             text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,
@@ -196,12 +193,11 @@ fun AiMessageBubble(message: String) {
         modifier = Modifier.padding(end = 100.dp, bottom = 16.dp),
     ) {
         Text(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Green)
-                    .padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Green)
+                .padding(16.dp),
             text = message,
             fontSize = 17.sp,
             color = MaterialTheme.colorScheme.onPrimary,

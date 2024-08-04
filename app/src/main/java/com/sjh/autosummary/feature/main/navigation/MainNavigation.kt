@@ -12,7 +12,7 @@ const val MAIN_ROUTE = "/main"
 const val HISTORYDATA_KEY = "messagelist"
 
 fun NavController.navigateToMain(data: Long) {
-    this.navigate("$MAIN_ROUTE/$data")
+    navigate("$MAIN_ROUTE/$data")
 }
 
 fun NavGraphBuilder.mainScreen(

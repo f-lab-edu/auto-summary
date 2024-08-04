@@ -25,7 +25,8 @@ object DatabaseModule {
             context,
             RoomDatabase::class.java,
             "autoSummaryDB.db",
-        ).fallbackToDestructiveMigration()
+        )
+            .fallbackToDestructiveMigration()
             .build()
 
     @Provides

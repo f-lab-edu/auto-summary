@@ -12,9 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class RoomDatabaseDaos
-@Inject
-constructor(
+class RoomDatabaseDaos @Inject constructor(
     private val chatHistoryDao: ChatHistoryDao,
     private val messageContentDao: MessageContentDao,
     private val chatSummaryDao: ChatSummaryDao,
@@ -84,7 +82,6 @@ constructor(
             }
         }
 
-
     override suspend fun getAllChatHistoriesWithMessages(): Result<List<ChatHistoryWithMessages>> =
         withContext(Dispatchers.IO) {
             try {
@@ -117,7 +114,6 @@ constructor(
             messageContentEntitys.forEach { messageContent ->
                 messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryId))
             }
-
             Result.success(chatHistoryId)
         } catch (e: Exception) {
             Result.failure(e)

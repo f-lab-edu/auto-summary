@@ -8,6 +8,8 @@ on:
 
 jobs:
   build:
+    permissions:
+      checks: write
 
     runs-on: ubuntu-latest
 
@@ -35,7 +37,7 @@ jobs:
       uses: ScaCap/action-ktlint@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        reporter: github-pr-review
+        reporter: github-pr-check
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew

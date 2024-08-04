@@ -18,8 +18,9 @@ import javax.inject.Inject
 
 class HistoryRepositoryImpl
     @Inject
-    constructor(private val localDataSource: LocalDataSource) :
-    HistoryRepository {
+    constructor(
+        private val localDataSource: LocalDataSource
+    ) : HistoryRepository {
         override suspend fun insertChatHistory(chatHistory: ChatHistory): Long? {
             val chatHistoryEntity = chatHistory.toChatHistoryEntity()
 

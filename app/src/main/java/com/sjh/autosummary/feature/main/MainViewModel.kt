@@ -58,7 +58,8 @@ class MainViewModel
         fun requestQuestion(requestMessage: ChatRequest) {
             chatMessages.add(requestMessage.requestMessage)
             viewModelScope.launch {
-                chatRepository.createChatCompletion(chatRequest = requestMessage)
+                chatRepository
+                    .createChatCompletion(chatRequest = requestMessage)
                     .cancellable()
                     .collectLatest { response ->
                         when (response) {

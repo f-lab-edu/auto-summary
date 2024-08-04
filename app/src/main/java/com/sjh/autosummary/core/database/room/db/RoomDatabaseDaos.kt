@@ -8,7 +8,6 @@ import com.sjh.autosummary.core.database.room.dao.MessageContentDao
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 import com.sjh.autosummary.core.database.room.entity.ChatSummaryEntity
 import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
-import com.sjh.autosummary.core.model.ChatHistory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject

@@ -110,10 +110,10 @@ fun HistroyContent(
     ) {
         LazyColumn(
             modifier =
-                modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+            modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
         ) {
             itemsIndexed(chatHistoryList) { idx, chat ->
                 ChatHistoryItem(
@@ -133,22 +133,20 @@ fun ChatHistoryItem(
     modifier: Modifier,
 ) {
     Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .clickable {
-                    chat.id?.let {
-                        onChatHistoryClick(it)
-                    }
-                },
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .clickable {
+                chat.id?.let {
+                    onChatHistoryClick(it)
+                }
+            },
     ) {
         Row(
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 10.dp),
+            modifier = modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -167,10 +165,10 @@ fun ChatHistoryItem(
 
         Spacer(
             modifier =
-                modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(color = Color.DarkGray),
+            modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(color = Color.DarkGray),
         )
     }
 }

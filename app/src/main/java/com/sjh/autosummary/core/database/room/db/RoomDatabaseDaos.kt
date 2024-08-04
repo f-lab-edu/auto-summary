@@ -98,7 +98,6 @@ class RoomDatabaseDaos @Inject constructor(
             }
         }
 
-
     override suspend fun insertMessageContent(messageContent: MessageContentEntity) {
         withContext(Dispatchers.IO) {
             messageContentDao.insertMessageContent(messageContent)

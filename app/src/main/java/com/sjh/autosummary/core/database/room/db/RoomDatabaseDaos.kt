@@ -3,8 +3,10 @@ package com.sjh.autosummary.core.database.room.db
 import com.sjh.autosummary.core.database.LocalDataSource
 import com.sjh.autosummary.core.database.model.ChatHistoryWithMessages
 import com.sjh.autosummary.core.database.room.dao.ChatHistoryDao
+import com.sjh.autosummary.core.database.room.dao.ChatSummaryDao
 import com.sjh.autosummary.core.database.room.dao.MessageContentDao
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
+import com.sjh.autosummary.core.database.room.entity.ChatSummaryEntity
 import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,18 +17,68 @@ class RoomDatabaseDaos
 constructor(
     private val chatHistoryDao: ChatHistoryDao,
     private val messageContentDao: MessageContentDao,
+    private val chatSummaryDao: ChatSummaryDao,
 ) : LocalDataSource {
+
+    suspend fun insertChatSummary(chatSummary: ChatSummaryEntity): Result<Long> =
+        withContext(Dispatchers.IO) {
+            try {
+                val chatSummaryId = chatSummaryDao.insertChatSummary(chatSummary = chatSummary)
+
+                Result.success(chatSummaryId)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    suspend fun updateChatSummary(chatSummary: ChatSummaryEntity) {
+        withContext(Dispatchers.IO) {
+            chatSummaryDao.updateChatSummary(chatSummary)
+        }
+    }
+
+    suspend fun deleteChatSummary(chatSummary: ChatSummaryEntity) {
+        withContext(Dispatchers.IO) {
+            chatSummaryDao.deleteChatSummary(chatSummary)
+        }
+    }
+
+    suspend fun getChatSummaryById(id: Long): Result<ChatSummaryEntity?> =
+        withContext(Dispatchers.IO) {
+            try {
+                val chatSummary = chatSummaryDao.getChatSummaryById(id)
+
+                chatSummary?.let {
+                    Result.success(it)
+                } ?: Result.success(null)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    suspend fun getAllChatSummaries(): Result<List<ChatSummaryEntity>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val chatSummarys = chatSummaryDao.getAllChatSummaries() ?: emptyList()
+
+                Result.success(chatSummarys)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
     override suspend fun getChatHistoryWithMessagesById(id: Long): Result<ChatHistoryWithMessages?> =
         withContext(Dispatchers.IO) {
             try {
                 val chatHistory = chatHistoryDao.getChatHistoryById(id)
-                val messageContents =
-                    chatHistory?.let { messageContentDao.getMessageContentsByChatHistoryId(it.id) }
-                if (chatHistory != null && messageContents != null) {
-                    Result.success(ChatHistoryWithMessages(chatHistory, messageContents))
-                } else {
-                    Result.success(null)
-                }
+
+                val messageContents = chatHistory?.let {
+                    messageContentDao.getMessageContentsByChatHistoryId(it.id)
+                } ?: emptyList()
+
+                chatHistory?.let {
+                    Result.success(ChatHistoryWithMessages(it, messageContents))
+                } ?: Result.success(null)
             } catch (e: Exception) {
                 Result.failure(e)
             }

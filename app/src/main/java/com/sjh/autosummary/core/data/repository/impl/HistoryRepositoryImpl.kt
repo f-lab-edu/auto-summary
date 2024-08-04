@@ -16,80 +16,86 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
-class HistoryRepositoryImpl
-    @Inject
-    constructor(private val localDataSource: LocalDataSource) :
+class HistoryRepositoryImpl @Inject constructor(
+    private val localDataSource: LocalDataSource
+) :
     HistoryRepository {
-        override suspend fun insertChatHistory(chatHistory: ChatHistory): Long? {
-            val chatHistoryEntity = chatHistory.toChatHistoryEntity()
+    override suspend fun insertChatHistory(chatHistory: ChatHistory): Long? {
+        val chatHistoryEntity = chatHistory.toChatHistoryEntity()
 
-            val result =
-                localDataSource.insertChatHistoryWithMessages(
-                    chatHistoryEntity,
-                    chatHistory.messageList.map { it.toMessageContentEntity(chatHistoryEntity.id) },
-                )
+        val result =
+            localDataSource.insertChatHistoryWithMessages(
+                chatHistoryEntity,
+                chatHistory.messageList.map { it.toMessageContentEntity(chatHistoryEntity.id) },
+            )
 
-            return result.getOrNull()
-        }
-
-        override fun getChatHistory(chatHistoryId: Long): Flow<LoadState<ChatHistory>> =
-            flow {
-                val result = localDataSource.getChatHistoryWithMessagesById(chatHistoryId)
-
-                if (result.isSuccess) {
-                    val requestSucceededResult = result.getOrNull()
-
-                    if (requestSucceededResult != null) {
-                        emit(LoadState.Succeeded(data = requestSucceededResult.toChatHistory()))
-                    } else {
-                        emit(LoadState.Failed(exception = Exception("Received null response from DB")))
-                    }
-                } else {
-                    val requestFailedResult = result.exceptionOrNull()
-
-                    if (requestFailedResult != null) {
-                        emit(LoadState.Failed(exception = requestFailedResult))
-                    } else {
-                        emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
-                    }
-                }
-            }.catch { e ->
-                emit(LoadState.Failed(exception = e))
-            }.onStart {
-                emit(LoadState.InProgress)
-            }.flowOn(Dispatchers.IO)
-
-        override fun getAllChatHistories(): Flow<LoadState<List<ChatHistory>>> =
-            flow {
-                val result = localDataSource.getAllChatHistoriesWithMessages()
-
-                if (result.isSuccess) {
-                    val requestSucceededResult = result.getOrNull()
-
-                    if (requestSucceededResult != null) {
-                        emit(LoadState.Succeeded(data = requestSucceededResult.map(ChatHistoryWithMessages::toChatHistory)))
-                    } else {
-                        emit(LoadState.Failed(exception = Exception("Received null response from DB")))
-                    }
-                } else {
-                    val requestFailedResult = result.exceptionOrNull()
-
-                    if (requestFailedResult != null) {
-                        emit(LoadState.Failed(exception = requestFailedResult))
-                    } else {
-                        emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
-                    }
-                }
-            }.catch { e ->
-                emit(LoadState.Failed(exception = e))
-            }.onStart {
-                emit(LoadState.InProgress)
-            }.flowOn(Dispatchers.IO)
-
-        override suspend fun deleteChatHistory(chatHistory: ChatHistory) {
-            localDataSource.deleteChatHistoryById(chatHistory.id ?: 0L) // id가 null인 경우 기본값 0을 사용
-        }
+        return result.getOrNull()
     }
+
+    override fun getChatHistory(chatHistoryId: Long): Flow<LoadState<ChatHistory>> =
+        flow {
+            val result = localDataSource.getChatHistoryWithMessagesById(chatHistoryId)
+
+            if (result.isSuccess) {
+                val requestSucceededResult = result.getOrNull()
+
+                if (requestSucceededResult != null) {
+                    emit(LoadState.Succeeded(data = requestSucceededResult.toChatHistory()))
+                } else {
+                    emit(LoadState.Failed(exception = Exception("Received null response from DB")))
+                }
+            } else {
+                val requestFailedResult = result.exceptionOrNull()
+
+                if (requestFailedResult != null) {
+                    emit(LoadState.Failed(exception = requestFailedResult))
+                } else {
+                    emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
+                }
+            }
+        }.catch { e ->
+            emit(LoadState.Failed(exception = e))
+        }.onStart {
+            emit(LoadState.InProgress)
+        }.flowOn(Dispatchers.IO)
+
+    override fun getAllChatHistories(): Flow<LoadState<List<ChatHistory>>> =
+        flow {
+            val result = localDataSource.getAllChatHistoriesWithMessages()
+
+            if (result.isSuccess) {
+                val requestSucceededResult = result.getOrNull()
+
+                if (requestSucceededResult != null) {
+                    emit(
+                        LoadState.Succeeded(
+                            data = requestSucceededResult.map(
+                                ChatHistoryWithMessages::toChatHistory
+                            )
+                        )
+                    )
+                } else {
+                    emit(LoadState.Failed(exception = Exception("Received null response from DB")))
+                }
+            } else {
+                val requestFailedResult = result.exceptionOrNull()
+
+                if (requestFailedResult != null) {
+                    emit(LoadState.Failed(exception = requestFailedResult))
+                } else {
+                    emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
+                }
+            }
+        }.catch { e ->
+            emit(LoadState.Failed(exception = e))
+        }.onStart {
+            emit(LoadState.InProgress)
+        }.flowOn(Dispatchers.IO)
+
+    override suspend fun deleteChatHistory(chatHistory: ChatHistory) {
+        localDataSource.deleteChatHistoryById(chatHistory.id ?: 0L) // id가 null인 경우 기본값 0을 사용
+    }
+}
 
 private fun ChatHistory.toChatHistoryEntity() =
     ChatHistoryEntity(

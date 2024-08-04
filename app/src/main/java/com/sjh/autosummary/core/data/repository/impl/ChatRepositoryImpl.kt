@@ -19,41 +19,39 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
-class ChatRepositoryImpl
-    @Inject
-    constructor(
-        private val networkDataSource: NetworkDataSource,
-    ) : ChatRepository {
-        override fun createChatCompletion(chatRequest: ChatRequest): Flow<LoadState<ChatResponse>> =
-            flow {
-                val requestResult =
-                    networkDataSource.createChatCompletion(
-                        chatRequest = chatRequest.toGptChatRequest(),
-                    )
+class ChatRepositoryImpl @Inject constructor(
+    private val networkDataSource: NetworkDataSource,
+) : ChatRepository {
+    override fun createChatCompletion(chatRequest: ChatRequest): Flow<LoadState<ChatResponse>> =
+        flow {
+            val requestResult =
+                networkDataSource.createChatCompletion(
+                    chatRequest = chatRequest.toGptChatRequest(),
+                )
 
-                if (requestResult.isSuccess) {
-                    val requestSucceededResult = requestResult.getOrNull()
+            if (requestResult.isSuccess) {
+                val requestSucceededResult = requestResult.getOrNull()
 
-                    if (requestSucceededResult != null) {
-                        emit(LoadState.Succeeded(data = requestSucceededResult.toChatResponse()))
-                    } else {
-                        emit(LoadState.Failed(exception = Exception("Received null response from API")))
-                    }
+                if (requestSucceededResult != null) {
+                    emit(LoadState.Succeeded(data = requestSucceededResult.toChatResponse()))
                 } else {
-                    val requestFailedResult = requestResult.exceptionOrNull()
-
-                    if (requestFailedResult != null) {
-                        emit(LoadState.Failed(exception = requestFailedResult))
-                    } else {
-                        emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
-                    }
+                    emit(LoadState.Failed(exception = Exception("Received null response from API")))
                 }
-            }.catch { e ->
-                emit(LoadState.Failed(exception = e))
-            }.onStart {
-                emit(LoadState.InProgress)
-            }.flowOn(Dispatchers.IO)
-    }
+            } else {
+                val requestFailedResult = requestResult.exceptionOrNull()
+
+                if (requestFailedResult != null) {
+                    emit(LoadState.Failed(exception = requestFailedResult))
+                } else {
+                    emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
+                }
+            }
+        }.catch { e ->
+            emit(LoadState.Failed(exception = e))
+        }.onStart {
+            emit(LoadState.InProgress)
+        }.flowOn(Dispatchers.IO)
+}
 
 private fun GptChatResponse.toChatResponse(): ChatResponse {
     val firstChoice = choices.firstOrNull()
@@ -65,10 +63,10 @@ private fun GptChatResponse.toChatResponse(): ChatResponse {
 private fun ChatRequest.toGptChatRequest() =
     GptChatRequest(
         messages =
-            listOf(
-                GptConst.DEFAULT_REQUEST_MESSAGE,
-                requestMessage,
-            ).map(MessageContent::toGptMessageContent),
+        listOf(
+            GptConst.DEFAULT_REQUEST_MESSAGE,
+            requestMessage,
+        ).map(MessageContent::toGptMessageContent),
         model = GptConst.DEFAULT_GPT_MODEL,
     )
 

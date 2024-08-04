@@ -8,4 +8,5 @@ insert_final_newline = true
 disabled_rules = no-wildcard-imports,import-ordering,comment-spacing
 ktlint_standard_import-ordering = disabled
 [*.{kt,kts}]
+ktlint_code_style = intellij_idea
 ktlint_function_naming_ignore_when_annotated_with = Composable

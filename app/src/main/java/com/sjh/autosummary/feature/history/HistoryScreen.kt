@@ -30,47 +30,35 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.sjh.autosummary.R
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatHistory
-import com.sjh.autosummary.core.model.ChatMessage
+import com.sjh.autosummary.feature.main.MainViewModel
 
 @Composable
 fun HistoryRoute(
-    onChatHistoryClick: (List<ChatMessage>) -> Unit,
+    onChatHistoryClick: (Long) -> Unit,
     onSummaryClick: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: MainViewModel = hiltViewModel(),
 ) {
     HistoryScreen(
         onChatHistoryClick = onChatHistoryClick,
         onSummaryClick = onSummaryClick,
+        // Todo : State로 변경
+        chatHistoryList = listOf(),
         modifier = modifier,
     )
 }
 
 @Composable
 fun HistoryScreen(
-    onChatHistoryClick: (List<ChatMessage>) -> Unit,
+    onChatHistoryClick: (Long) -> Unit,
     onSummaryClick: () -> Unit,
+    chatHistoryList: List<ChatHistory>,
     modifier: Modifier = Modifier,
 ) {
-    val chatList: List<ChatHistory> =
-        listOf(
-            ChatHistory(
-                id = 0,
-                date = "2024.07.24",
-                name = "random",
-                messageList =
-                    listOf(
-                        ChatMessage(isFromUser = true, prompt = "질문 질문 질문"),
-                        ChatMessage(
-                            isFromUser = false,
-                            prompt = "대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답 대답",
-                        ),
-                    ),
-            ),
-        )
-
     Scaffold(
         topBar = {
             HistoryTopBar(onSummaryClick = onSummaryClick)
@@ -81,7 +69,7 @@ fun HistoryScreen(
         ) {
             HistroyContent(
                 onChatHistoryClick = onChatHistoryClick,
-                chatList = chatList,
+                chatHistoryList = chatHistoryList,
                 modifier = modifier,
             )
         }
@@ -112,8 +100,8 @@ fun HistoryTopBar(
 
 @Composable
 fun HistroyContent(
-    onChatHistoryClick: (List<ChatMessage>) -> Unit,
-    chatList: List<ChatHistory>,
+    onChatHistoryClick: (Long) -> Unit,
+    chatHistoryList: List<ChatHistory>,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -122,12 +110,12 @@ fun HistroyContent(
     ) {
         LazyColumn(
             modifier =
-                modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+            modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
         ) {
-            itemsIndexed(chatList) { idx, chat ->
+            itemsIndexed(chatHistoryList) { idx, chat ->
                 ChatHistoryItem(
                     onChatHistoryClick = onChatHistoryClick,
                     chat = chat,
@@ -140,23 +128,23 @@ fun HistroyContent(
 
 @Composable
 fun ChatHistoryItem(
-    onChatHistoryClick: (List<ChatMessage>) -> Unit,
+    onChatHistoryClick: (Long) -> Unit,
     chat: ChatHistory,
     modifier: Modifier,
 ) {
     Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .clickable { onChatHistoryClick(chat.messageList) },
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .clickable {
+                chat.id?.let(onChatHistoryClick)
+            },
     ) {
         Row(
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 10.dp),
+            modifier = modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -175,10 +163,10 @@ fun ChatHistoryItem(
 
         Spacer(
             modifier =
-                modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(color = Color.DarkGray),
+            modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(color = Color.DarkGray),
         )
     }
 }
@@ -190,6 +178,7 @@ private fun HistoryScreenPreview() {
         HistoryScreen(
             onChatHistoryClick = { a -> },
             onSummaryClick = {},
+            chatHistoryList = listOf(),
         )
     }
 }

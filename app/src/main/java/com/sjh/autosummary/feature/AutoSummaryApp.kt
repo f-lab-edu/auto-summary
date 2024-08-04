@@ -32,11 +32,16 @@ fun AutoSummaryNavHost(
         startDestination = startDestination,
         modifier = modifier,
     ) {
-        mainScreen(onHistoryClick = navController::navigateToHistory, dataKey = HISTORYDATA_KEY)
+        mainScreen(
+            onHistoryClick = navController::navigateToHistory,
+            dataKey = HISTORYDATA_KEY
+        )
         historyScreen(
-            onChatHistoryClick = { messageList -> navController.navigateToMain(messageList) },
+            onChatHistoryClick = navController::navigateToMain,
             onSummaryClick = navController::navigateToSummary,
         )
-        summaryScreen(onBackClick = navController::popBackStack)
+        summaryScreen(
+            onBackClick = navController::popBackStack
+        )
     }
 }

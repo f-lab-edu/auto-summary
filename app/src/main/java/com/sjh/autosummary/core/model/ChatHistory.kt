@@ -1,8 +1,10 @@
 package com.sjh.autosummary.core.model
 
 data class ChatHistory(
-    val id: Long,
+    // yyyy-mm-dd
     val date: String,
-    val name: String,
-    val messageList: List<ChatMessage>,
+    val messageList: List<MessageContent>,
+    val id: Long? = null,
+    // 사용자가 정의
+    val name: String = "",
 )

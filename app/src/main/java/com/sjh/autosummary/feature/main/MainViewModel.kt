@@ -26,10 +26,10 @@ class MainViewModel @Inject constructor(
     private var latestChatHistoryId: Long? = null
 
     init {
-        initChat()
+        createChat()
     }
 
-    fun initChat() {
+    fun createChat() {
         viewModelScope.launch {
             latestChatHistoryId =
                 historyRepository.insertChatHistory(
@@ -53,7 +53,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun requestQuestion(requestMessage: ChatRequest) {
+    fun sendRequest(requestMessage: ChatRequest) {
         chatMessages.add(requestMessage.requestMessage)
         viewModelScope.launch {
             chatRepository.createChatCompletion(chatRequest = requestMessage)

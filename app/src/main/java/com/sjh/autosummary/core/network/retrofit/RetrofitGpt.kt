@@ -33,14 +33,13 @@ class RetrofitGpt @Inject constructor(
             .create(RetrofitGptApi::class.java)
 
     override suspend fun createChatCompletion(chatRequest: GptChatRequest): Result<GptChatResponse> =
-        withContext(Dispatchers.IO) {
-            try {
-                networkApi.createChatCompletion(
-                    authorization = "Bearer $GPT_API_KEY",
-                    chatRequest = chatRequest,
-                )
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+        try {
+            networkApi.createChatCompletion(
+                authorization = "Bearer $GPT_API_KEY",
+                chatRequest = chatRequest,
+            )
+        } catch (e: Exception) {
+            Result.failure(e)
         }
+
 }

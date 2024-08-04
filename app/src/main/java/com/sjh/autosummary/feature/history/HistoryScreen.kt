@@ -137,9 +137,7 @@ fun ChatHistoryItem(
             .fillMaxWidth()
             .wrapContentHeight()
             .clickable {
-                chat.id?.let {
-                    onChatHistoryClick(it)
-                }
+                chat.id?.let(onChatHistoryClick)
             },
     ) {
         Row(

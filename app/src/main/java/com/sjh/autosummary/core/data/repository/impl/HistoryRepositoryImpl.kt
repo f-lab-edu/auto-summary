@@ -19,6 +19,7 @@ import javax.inject.Inject
 class HistoryRepositoryImpl @Inject constructor(
     private val localDataSource: LocalDataSource
 ) : HistoryRepository {
+
     override suspend fun insertChatHistory(chatHistory: ChatHistory): Long? {
         val chatHistoryEntity = chatHistory.toChatHistoryEntity()
 
@@ -92,7 +93,7 @@ class HistoryRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
 
     override suspend fun deleteChatHistory(chatHistory: ChatHistory) {
-        localDataSource.deleteChatHistoryById(chatHistory.id ?: 0L) // id가 null인 경우 기본값 0을 사용
+        localDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
     }
 }
 

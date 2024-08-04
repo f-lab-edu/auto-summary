@@ -8,6 +8,7 @@ import com.sjh.autosummary.core.database.room.dao.MessageContentDao
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 import com.sjh.autosummary.core.database.room.entity.ChatSummaryEntity
 import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
+import com.sjh.autosummary.core.model.ChatHistory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -18,7 +19,7 @@ class RoomDatabaseDaos @Inject constructor(
     private val chatSummaryDao: ChatSummaryDao,
 ) : LocalDataSource {
 
-    suspend fun insertChatSummary(chatSummary: ChatSummaryEntity): Result<Long> =
+    override suspend fun insertChatSummary(chatSummary: ChatSummaryEntity): Result<Long> =
         withContext(Dispatchers.IO) {
             try {
                 val chatSummaryId = chatSummaryDao.insertChatSummary(chatSummary = chatSummary)
@@ -29,19 +30,19 @@ class RoomDatabaseDaos @Inject constructor(
             }
         }
 
-    suspend fun updateChatSummary(chatSummary: ChatSummaryEntity) {
+    override suspend fun updateChatSummary(chatSummary: ChatSummaryEntity) {
         withContext(Dispatchers.IO) {
             chatSummaryDao.updateChatSummary(chatSummary)
         }
     }
 
-    suspend fun deleteChatSummary(chatSummary: ChatSummaryEntity) {
+    override suspend fun deleteChatSummary(chatSummary: ChatSummaryEntity) {
         withContext(Dispatchers.IO) {
             chatSummaryDao.deleteChatSummary(chatSummary)
         }
     }
 
-    suspend fun getChatSummaryById(id: Long): Result<ChatSummaryEntity?> =
+    override suspend fun getChatSummaryById(id: Long): Result<ChatSummaryEntity?> =
         withContext(Dispatchers.IO) {
             try {
                 val chatSummary = chatSummaryDao.getChatSummaryById(id)
@@ -54,7 +55,7 @@ class RoomDatabaseDaos @Inject constructor(
             }
         }
 
-    suspend fun getAllChatSummaries(): Result<List<ChatSummaryEntity>> =
+    override suspend fun getAllChatSummaries(): Result<List<ChatSummaryEntity>> =
         withContext(Dispatchers.IO) {
             try {
                 val chatSummarys = chatSummaryDao.getAllChatSummaries() ?: emptyList()
@@ -121,9 +122,9 @@ class RoomDatabaseDaos @Inject constructor(
     }
 
 
-    override suspend fun deleteChatHistoryById(chatHistoryId: Long) {
+    override suspend fun deleteChatHistory(chatHistory: ChatHistoryEntity) {
         withContext(Dispatchers.IO) {
-            chatHistoryDao.deleteChatHistoryById(chatHistoryId)
+            chatHistoryDao.deleteChatHistory(chatHistory)
         }
     }
 }

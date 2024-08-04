@@ -10,6 +10,7 @@ import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 
 @Dao
 interface ChatHistoryDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChatHistory(chatHistory: ChatHistoryEntity): Long
 

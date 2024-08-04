@@ -7,6 +7,5 @@ import javax.inject.Inject
 class HistoryViewModel @Inject constructor(
     private val historyRepository: HistoryRepository,
 ) : ViewModel() {
-    init {
-    }
+
 }

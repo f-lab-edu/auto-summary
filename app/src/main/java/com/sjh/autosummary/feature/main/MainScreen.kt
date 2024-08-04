@@ -52,10 +52,6 @@ fun MainRoute(
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
-    chatHistoryId?.let {
-        viewModel.getChatHistory(it)
-    }
-
     MainScreen(
         // Todo : state로 변경
         messageList = listOf(),

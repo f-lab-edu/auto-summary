@@ -80,7 +80,6 @@ class SummaryRepositoryImpl @Inject constructor(
             emit(LoadState.InProgress)
         }.flowOn(Dispatchers.IO)
 
-
     override suspend fun updateChatSummary(chatSummary: ChatSummary) {
         localDataSource.updateChatSummary(chatSummary.toChatSummaryEntity())
     }

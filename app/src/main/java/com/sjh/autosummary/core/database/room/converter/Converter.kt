@@ -13,9 +13,7 @@ class Converter {
     fun fromInformationFormList(value: List<InformationForm>): String =
         json.encodeToString(ListSerializer(InformationForm.serializer()), value)
 
-
     @TypeConverter
     fun toInformationFormList(value: String): List<InformationForm> =
         json.decodeFromString(ListSerializer(InformationForm.serializer()), value)
-
 }

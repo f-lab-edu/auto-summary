@@ -120,7 +120,6 @@ class RoomDatabaseDaos @Inject constructor(
         }
     }
 
-
     override suspend fun deleteChatHistory(chatHistory: ChatHistoryEntity) {
         withContext(Dispatchers.IO) {
             chatHistoryDao.deleteChatHistory(chatHistory)

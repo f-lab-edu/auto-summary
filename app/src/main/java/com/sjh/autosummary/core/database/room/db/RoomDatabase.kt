@@ -19,5 +19,5 @@ abstract class RoomDatabase : RoomDatabase() {
 
     abstract fun messageContentDao(): MessageContentDao
 
-    abstract fun chatSummaryDao() : ChatSummaryDao
+    abstract fun chatSummaryDao(): ChatSummaryDao
 }

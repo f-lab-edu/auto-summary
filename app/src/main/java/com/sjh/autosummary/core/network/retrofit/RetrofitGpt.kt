@@ -19,30 +19,28 @@ private const val BASE_URL = "https://api.openai.com/v1/"
 private const val GPT_API_KEY = ""
 
 @Singleton
-class RetrofitGpt
-    @Inject
-    constructor(
-        json: Json,
-        okhttpCallFactory: dagger.Lazy<Call.Factory>,
-    ) : NetworkDataSource {
-        private val networkApi =
-            Retrofit
-                .Builder()
-                .baseUrl(BASE_URL)
-                .callFactory { okhttpCallFactory.get().newCall(it) }
-                .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-                .build()
-                .create(RetrofitGptApi::class.java)
+class RetrofitGpt @Inject constructor(
+    json: Json,
+    okhttpCallFactory: dagger.Lazy<Call.Factory>,
+) : NetworkDataSource {
+    private val networkApi =
+        Retrofit
+            .Builder()
+            .baseUrl(BASE_URL)
+            .callFactory { okhttpCallFactory.get().newCall(it) }
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(RetrofitGptApi::class.java)
 
-        override suspend fun createChatCompletion(chatRequest: GptChatRequest): Result<GptChatResponse> =
-            withContext(Dispatchers.IO) {
-                try {
-                    networkApi.createChatCompletion(
-                        authorization = "Bearer $GPT_API_KEY",
-                        chatRequest = chatRequest,
-                    )
-                } catch (e: Exception) {
-                    Result.failure(e)
-                }
+    override suspend fun createChatCompletion(chatRequest: GptChatRequest): Result<GptChatResponse> =
+        withContext(Dispatchers.IO) {
+            try {
+                networkApi.createChatCompletion(
+                    authorization = "Bearer $GPT_API_KEY",
+                    chatRequest = chatRequest,
+                )
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-    }
+        }
+}

@@ -4,8 +4,6 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.sjh.autosummary.core.network.NetworkDataSource
 import com.sjh.autosummary.core.network.model.GptChatRequest
 import com.sjh.autosummary.core.network.model.GptChatResponse
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
@@ -41,5 +39,4 @@ class RetrofitGpt @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
-
 }

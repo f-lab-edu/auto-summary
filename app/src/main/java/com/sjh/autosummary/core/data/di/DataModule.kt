@@ -17,13 +17,13 @@ import javax.inject.Singleton
 abstract class DataModule {
     @Binds
     @Singleton
-    abstract fun bindsChatRepository(chatRepositoryImpl: ChatRepositoryImpl): ChatRepository
+    abstract fun bindChatRepository(chatRepositoryImpl: ChatRepositoryImpl): ChatRepository
 
     @Binds
     @Singleton
-    abstract fun bindsHistoryRepository(historyRepositoryImpl: HistoryRepositoryImpl): HistoryRepository
+    abstract fun bindHistoryRepository(historyRepositoryImpl: HistoryRepositoryImpl): HistoryRepository
 
     @Binds
     @Singleton
-    abstract fun bindsSummaryRepository(summaryRepositoryImpl: SummaryRepositoryImpl): SummaryRepository
+    abstract fun bindSummaryRepository(summaryRepositoryImpl: SummaryRepositoryImpl): SummaryRepository
 }

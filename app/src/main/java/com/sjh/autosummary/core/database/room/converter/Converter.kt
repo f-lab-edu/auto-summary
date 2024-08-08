@@ -6,8 +6,9 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
 class Converter {
-    private val json =
-        Json { ignoreUnknownKeys = true }
+    private companion object {
+        val json = Json { ignoreUnknownKeys = true }
+    }
 
     @TypeConverter
     fun fromInformationFormList(value: List<InformationForm>): String =

@@ -1,106 +1,80 @@
 package com.sjh.autosummary.core.data.repository.impl
 
-import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.data.repository.SummaryRepository
-import com.sjh.autosummary.core.database.LocalDataSource
+import com.sjh.autosummary.core.database.LocalSummaryDataSource
 import com.sjh.autosummary.core.database.room.entity.ChatSummaryEntity
 import com.sjh.autosummary.core.model.ChatSummary
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SummaryRepositoryImpl @Inject constructor(
-    private val localDataSource: LocalDataSource
+    private val localSummaryDataSource: LocalSummaryDataSource,
 ) : SummaryRepository {
 
-    override suspend fun insertChatSummary(chatSummary: ChatSummary): Long? {
+    override suspend fun addOrUpdateChatSummary(chatSummary: ChatSummary): Long? {
         val chatSummaryEntity = chatSummary.toChatSummaryEntity()
-
-        val result =
-            localDataSource.insertChatSummary(chatSummaryEntity)
-
+        val result = localSummaryDataSource.insertChatSummary(chatSummaryEntity)
         return result.getOrNull()
     }
 
-    override fun getChatSummary(chatSummaryId: Long): Flow<LoadState<ChatSummary>> =
-        flow {
-            val result = localDataSource.getChatSummaryById(chatSummaryId)
-
-            if (result.isSuccess) {
-                val requestSucceededResult = result.getOrNull()
-
-                if (requestSucceededResult != null) {
-                    emit(LoadState.Succeeded(data = requestSucceededResult.toChatSummary()))
-                } else {
-                    emit(LoadState.Failed(exception = Exception("Received null response from DB")))
-                }
-            } else {
-                val requestFailedResult = result.exceptionOrNull()
-
-                if (requestFailedResult != null) {
-                    emit(LoadState.Failed(exception = requestFailedResult))
-                } else {
-                    emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
-                }
+    override suspend fun findChatSummary(chatSummaryId: Long): Result<ChatSummary> =
+        withContext(Dispatchers.IO) {
+            try {
+                val result = localSummaryDataSource.getChatSummaryById(chatSummaryId)
+                result.fold(
+                    onSuccess = { entity ->
+                        entity?.let {
+                            Result.success(it.toChatSummary())
+                        }
+                            ?: Result.failure(NoSuchElementException("No ChatSummary found for ID $chatSummaryId"))
+                    },
+                    onFailure = { exception ->
+                        Result.failure(exception)
+                    }
+                )
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        }.catch { e ->
-            emit(LoadState.Failed(exception = e))
-        }.onStart {
-            emit(LoadState.InProgress)
-        }.flowOn(Dispatchers.IO)
+        }
 
-    override fun getAllChatSummaries(): Flow<LoadState<List<ChatSummary>>> =
-        flow {
-            val result = localDataSource.getAllChatSummaries()
-
-            if (result.isSuccess) {
-                val requestSucceededResult = result.getOrNull()
-
-                if (requestSucceededResult != null) {
-                    emit(LoadState.Succeeded(data = requestSucceededResult.map(ChatSummaryEntity::toChatSummary)))
-                } else {
-                    emit(LoadState.Failed(exception = Exception("Received null response from DB")))
-                }
-            } else {
-                val requestFailedResult = result.exceptionOrNull()
-
-                if (requestFailedResult != null) {
-                    emit(LoadState.Failed(exception = requestFailedResult))
-                } else {
-                    emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
-                }
+    override suspend fun findAllChatSummaries(): Result<List<ChatSummary>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val result = localSummaryDataSource.getAllChatSummaries()
+                result.fold(
+                    onSuccess = { entities ->
+                        if (entities.isNotEmpty()) {
+                            Result.success(entities.map(ChatSummaryEntity::toChatSummary))
+                        } else {
+                            Result.failure(NoSuchElementException("No ChatSummaries found."))
+                        }
+                    },
+                    onFailure = { exception ->
+                        Result.failure(exception)
+                    }
+                )
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        }.catch { e ->
-            emit(LoadState.Failed(exception = e))
-        }.onStart {
-            emit(LoadState.InProgress)
-        }.flowOn(Dispatchers.IO)
-
-    override suspend fun updateChatSummary(chatSummary: ChatSummary) {
-        localDataSource.updateChatSummary(chatSummary.toChatSummaryEntity())
-    }
+        }
 
     override suspend fun deleteChatSummary(chatSummary: ChatSummary) {
-        localDataSource.deleteChatSummary(chatSummary.toChatSummaryEntity())
+        localSummaryDataSource.deleteChatSummary(chatSummary.toChatSummaryEntity())
     }
 }
 
-private fun ChatSummary.toChatSummaryEntity() =
-    ChatSummaryEntity(
-        id = id,
-        title = title,
-        subTitle = subTitle,
-        content = content
-    )
 
-private fun ChatSummaryEntity.toChatSummary() =
-    ChatSummary(
-        id = id,
-        title = title,
-        subTitle = subTitle,
-        content = content
-    )
+private fun ChatSummary.toChatSummaryEntity() = ChatSummaryEntity(
+    id = id,
+    title = title,
+    subTitle = subTitle,
+    content = content
+)
+
+private fun ChatSummaryEntity.toChatSummary() = ChatSummary(
+    id = id,
+    title = title,
+    subTitle = subTitle,
+    content = content
+)

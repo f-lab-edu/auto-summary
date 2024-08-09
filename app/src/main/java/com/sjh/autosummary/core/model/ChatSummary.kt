@@ -1,5 +1,7 @@
 package com.sjh.autosummary.core.model
 
+import kotlinx.serialization.Serializable
+
 data class ChatSummary(
     val id: Long,
     val title: String,
@@ -7,6 +9,7 @@ data class ChatSummary(
     val content: List<InformationForm>,
 )
 
+@Serializable
 data class InformationForm(
     val head: String,
     val body: String,

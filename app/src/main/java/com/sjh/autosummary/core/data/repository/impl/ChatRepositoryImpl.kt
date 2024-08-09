@@ -1,6 +1,5 @@
 package com.sjh.autosummary.core.data.repository.impl
 
-import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.common.const.GptConst
 import com.sjh.autosummary.core.data.model.ChatRequest
 import com.sjh.autosummary.core.data.model.ChatResponse
@@ -12,45 +11,25 @@ import com.sjh.autosummary.core.network.model.GptChatRequest
 import com.sjh.autosummary.core.network.model.GptChatResponse
 import com.sjh.autosummary.core.network.model.GptMessageContent
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ChatRepositoryImpl @Inject constructor(
     private val networkDataSource: NetworkDataSource,
 ) : ChatRepository {
-    override fun createChatCompletion(chatRequest: ChatRequest): Flow<LoadState<ChatResponse>> =
-        flow {
-            val requestResult =
+
+    override suspend fun createChatCompletion(chatRequest: ChatRequest): Result<ChatResponse> =
+        withContext(Dispatchers.IO) {
+            try {
                 networkDataSource.createChatCompletion(
                     chatRequest = chatRequest.toGptChatRequest(),
-                )
-
-            if (requestResult.isSuccess) {
-                val requestSucceededResult = requestResult.getOrNull()
-
-                if (requestSucceededResult != null) {
-                    emit(LoadState.Succeeded(data = requestSucceededResult.toChatResponse()))
-                } else {
-                    emit(LoadState.Failed(exception = Exception("Received null response from API")))
+                ).mapCatching { entity ->
+                    entity.toChatResponse()
                 }
-            } else {
-                val requestFailedResult = requestResult.exceptionOrNull()
-
-                if (requestFailedResult != null) {
-                    emit(LoadState.Failed(exception = requestFailedResult))
-                } else {
-                    emit(LoadState.Failed(exception = Exception("Unknown error occurred")))
-                }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-        }.catch { e ->
-            emit(LoadState.Failed(exception = e))
-        }.onStart {
-            emit(LoadState.InProgress)
-        }.flowOn(Dispatchers.IO)
+        }
 }
 
 private fun GptChatResponse.toChatResponse(): ChatResponse {
@@ -62,8 +41,7 @@ private fun GptChatResponse.toChatResponse(): ChatResponse {
 
 private fun ChatRequest.toGptChatRequest() =
     GptChatRequest(
-        messages =
-        listOf(
+        messages = listOf(
             GptConst.DEFAULT_REQUEST_MESSAGE,
             requestMessage,
         ).map(MessageContent::toGptMessageContent),

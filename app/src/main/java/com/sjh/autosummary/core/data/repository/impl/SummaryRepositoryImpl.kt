@@ -18,42 +18,25 @@ class SummaryRepositoryImpl @Inject constructor(
         return result.getOrNull()
     }
 
-    override suspend fun findChatSummary(chatSummaryId: Long): Result<ChatSummary> =
+    override suspend fun findChatSummary(chatSummaryId: Long): Result<ChatSummary?> =
         withContext(Dispatchers.IO) {
             try {
-                val result = localSummaryDataSource.getChatSummaryById(chatSummaryId)
-                result.fold(
-                    onSuccess = { entity ->
-                        entity?.let {
-                            Result.success(it.toChatSummary())
-                        }
-                            ?: Result.failure(NoSuchElementException("No ChatSummary found for ID $chatSummaryId"))
-                    },
-                    onFailure = { exception ->
-                        Result.failure(exception)
+                localSummaryDataSource.getChatSummaryById(chatSummaryId)
+                    .mapCatching { entity ->
+                        entity?.toChatSummary()
                     }
-                )
             } catch (e: Exception) {
                 Result.failure(e)
             }
         }
 
-    override suspend fun findAllChatSummaries(): Result<List<ChatSummary>> =
+    override suspend fun retrieveAllChatSummaries(): Result<List<ChatSummary>> =
         withContext(Dispatchers.IO) {
             try {
-                val result = localSummaryDataSource.getAllChatSummaries()
-                result.fold(
-                    onSuccess = { entities ->
-                        if (entities.isNotEmpty()) {
-                            Result.success(entities.map(ChatSummaryEntity::toChatSummary))
-                        } else {
-                            Result.failure(NoSuchElementException("No ChatSummaries found."))
-                        }
-                    },
-                    onFailure = { exception ->
-                        Result.failure(exception)
+                localSummaryDataSource.getAllChatSummaries()
+                    .mapCatching { entities ->
+                        entities.map(ChatSummaryEntity::toChatSummary)
                     }
-                )
             } catch (e: Exception) {
                 Result.failure(e)
             }

@@ -14,56 +14,49 @@ import javax.inject.Inject
 class HistoryRepositoryImpl @Inject constructor(
     private val localHistoryDataSource: LocalHistoryDataSource
 ) : HistoryRepository {
+
     override suspend fun addOrUpdateChatHistory(chatHistory: ChatHistory): Long? {
         val chatHistoryEntity = chatHistory.toChatHistoryEntity()
+        val messageContentEntities = chatHistory.messageList.map {
+            it.toMessageContentEntity(chatHistoryEntity.id)
+        }
 
-        val result =
+        return if (chatHistory.id != null) {
+            val existingChatHistory = localHistoryDataSource.getChatHistoryById(chatHistory.id)
+            existingChatHistory.getOrNull()?.let {
+                localHistoryDataSource.updateChatHistoryWithMessage(
+                    chatHistoryEntity = chatHistoryEntity,
+                    messageContentEntities = messageContentEntities
+                )
+            }
+        } else {
             localHistoryDataSource.insertChatHistoryWithMessages(
                 chatHistoryEntity = chatHistoryEntity,
-                messageContentEntitys = chatHistory.messageList.map {
-                    it.toMessageContentEntity(chatHistoryEntity.id)
-                },
+                messageContentEntities = messageContentEntities
             )
-
-        return result.getOrNull()
+        }?.getOrNull()
     }
 
-    override suspend fun findChatHistory(chatHistoryId: Long): Result<ChatHistory> =
+    override suspend fun findChatHistory(chatHistoryId: Long): Result<ChatHistory?> =
         withContext(Dispatchers.IO) {
             try {
-                val result = localHistoryDataSource.getChatHistoryWithMessagesById(chatHistoryId)
-                result.fold(
-                    onSuccess = { entity ->
-                        entity?.let {
-                            Result.success(it.toChatHistory())
-                        }
-                            ?: Result.failure(NoSuchElementException("No ChatHistory found for ID $chatHistoryId"))
-                    },
-                    onFailure = { exception ->
-                        Result.failure(exception)
+                localHistoryDataSource
+                    .getChatHistoryWithMessagesById(chatHistoryId)
+                    .mapCatching { entity ->
+                        entity?.toChatHistory()
                     }
-                )
             } catch (e: Exception) {
                 Result.failure(e)
             }
         }
 
-    override suspend fun findAllChatHistories(): Result<List<ChatHistory>> =
+    override suspend fun retrieveAllChatHistories(): Result<List<ChatHistory>> =
         withContext(Dispatchers.IO) {
             try {
-                val result = localHistoryDataSource.getAllChatHistoriesWithMessages()
-                result.fold(
-                    onSuccess = { entities ->
-                        if (entities.isNotEmpty()) {
-                            Result.success(entities.map(ChatHistoryWithMessages::toChatHistory))
-                        } else {
-                            Result.failure(NoSuchElementException("No ChatHistories found."))
-                        }
-                    },
-                    onFailure = { exception ->
-                        Result.failure(exception)
+                localHistoryDataSource.getAllChatHistoriesWithMessages()
+                    .mapCatching { entities ->
+                        entities.map(ChatHistoryWithMessages::toChatHistory)
                     }
-                )
             } catch (e: Exception) {
                 Result.failure(e)
             }

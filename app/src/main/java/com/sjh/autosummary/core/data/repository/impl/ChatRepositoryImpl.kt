@@ -21,17 +21,11 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun createChatCompletion(chatRequest: ChatRequest): Result<ChatResponse> =
         withContext(Dispatchers.IO) {
             try {
-                val result = networkDataSource.createChatCompletion(
+                networkDataSource.createChatCompletion(
                     chatRequest = chatRequest.toGptChatRequest(),
-                )
-                result.fold(
-                    onSuccess = { entity ->
-                        Result.success(entity.toChatResponse())
-                    },
-                    onFailure = { exception ->
-                        Result.failure(exception)
-                    }
-                )
+                ).mapCatching { entity ->
+                    entity.toChatResponse()
+                }
             } catch (e: Exception) {
                 Result.failure(e)
             }

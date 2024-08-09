@@ -5,6 +5,7 @@ import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
 
 interface LocalHistoryDataSource {
+    suspend fun getChatHistoryById(chatHistoryId: Long): Result<ChatHistoryEntity?>
 
     suspend fun getChatHistoryWithMessagesById(chatHistoryId: Long): Result<ChatHistoryWithMessages?>
 
@@ -12,7 +13,12 @@ interface LocalHistoryDataSource {
 
     suspend fun insertChatHistoryWithMessages(
         chatHistoryEntity: ChatHistoryEntity,
-        messageContentEntitys: List<MessageContentEntity>,
+        messageContentEntities: List<MessageContentEntity>,
+    ): Result<Long>
+
+    suspend fun updateChatHistoryWithMessage(
+        chatHistoryEntity: ChatHistoryEntity,
+        messageContentEntities: List<MessageContentEntity>
     ): Result<Long>
 
     suspend fun deleteChatHistory(chatHistory: ChatHistoryEntity)

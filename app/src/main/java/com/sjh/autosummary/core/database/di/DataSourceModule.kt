@@ -15,9 +15,9 @@ import javax.inject.Singleton
 abstract class DataSourceModule {
     @Binds
     @Singleton
-    abstract fun bindLocalHistoryDataSource(localHistoryDataSource: LocalHistoryDataSource): LocalHistoryDataSourceImpl
+    abstract fun bindLocalHistoryDataSource(localHistoryDataSourceImpl: LocalHistoryDataSourceImpl): LocalHistoryDataSource
 
     @Binds
     @Singleton
-    abstract fun bindLocalSummaryDataSource(localSummaryDataSource: LocalSummaryDataSource): LocalSummaryDataSourceImpl
+    abstract fun bindLocalSummaryDataSource(localSummaryDataSourceImpl: LocalSummaryDataSourceImpl): LocalSummaryDataSource
 }

@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.sjh.autosummary.core.database.model.ChatHistoryWithMessages
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 
@@ -14,6 +15,9 @@ interface ChatHistoryDao {
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertChatHistory(chatHistory: ChatHistoryEntity): Long
+
+    @Update
+    suspend fun updateChatHistory(chatHistory: ChatHistoryEntity)
 
     @Delete
     suspend fun deleteChatHistory(chatHistory: ChatHistoryEntity)

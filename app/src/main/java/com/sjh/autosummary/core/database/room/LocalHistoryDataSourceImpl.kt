@@ -16,6 +16,17 @@ class LocalHistoryDataSourceImpl @Inject constructor(
     private val messageContentDao: MessageContentDao,
 ) : LocalHistoryDataSource {
 
+    override suspend fun getChatHistoryById(chatHistoryId: Long): Result<ChatHistoryEntity?> =
+        withContext(Dispatchers.IO) {
+            try {
+                val chatHistory =
+                    chatHistoryDao.getChatHistoryById(chatHistoryId)
+                Result.success(chatHistory)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
     override suspend fun getChatHistoryWithMessagesById(chatHistoryId: Long): Result<ChatHistoryWithMessages?> =
         withContext(Dispatchers.IO) {
             try {
@@ -48,6 +59,24 @@ class LocalHistoryDataSourceImpl @Inject constructor(
                 messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryId))
             }
             Result.success(chatHistoryId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+
+    override suspend fun updateChatHistoryWithMessage(
+        chatHistoryEntity: ChatHistoryEntity,
+        messageContentEntities: List<MessageContentEntity>
+    ): Result<Long> =
+        try {
+            // 기존 메시지 내용 삭제
+            messageContentDao.deleteMessagesByChatHistoryId(chatHistoryEntity.id)
+            // 채팅 기록 업데이트
+            chatHistoryDao.updateChatHistory(chatHistoryEntity)
+            // 새 메시지 내용 삽입
+            for (messageContent in messageContentEntities) {
+                messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryEntity.id))
+            }
+            Result.success(chatHistoryEntity.id)
         } catch (e: Exception) {
             Result.failure(e)
         }

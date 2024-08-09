@@ -52,7 +52,6 @@ class LocalHistoryDataSourceImpl @Inject constructor(
             Result.failure(e)
         }
 
-
     override suspend fun deleteChatHistory(chatHistory: ChatHistoryEntity) {
         withContext(Dispatchers.IO) {
             chatHistoryDao.deleteChatHistory(chatHistory)

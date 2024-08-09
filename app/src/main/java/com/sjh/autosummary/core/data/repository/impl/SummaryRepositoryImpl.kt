@@ -64,7 +64,6 @@ class SummaryRepositoryImpl @Inject constructor(
     }
 }
 
-
 private fun ChatSummary.toChatSummaryEntity() = ChatSummaryEntity(
     id = id,
     title = title,

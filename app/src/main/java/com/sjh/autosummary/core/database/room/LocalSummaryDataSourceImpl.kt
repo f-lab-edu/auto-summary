@@ -22,12 +22,6 @@ class LocalSummaryDataSourceImpl @Inject constructor(
             }
         }
 
-    override suspend fun updateChatSummary(chatSummary: ChatSummaryEntity) {
-        withContext(Dispatchers.IO) {
-            chatSummaryDao.updateChatSummary(chatSummary)
-        }
-    }
-
     override suspend fun deleteChatSummary(chatSummary: ChatSummaryEntity) {
         withContext(Dispatchers.IO) {
             chatSummaryDao.deleteChatSummary(chatSummary)

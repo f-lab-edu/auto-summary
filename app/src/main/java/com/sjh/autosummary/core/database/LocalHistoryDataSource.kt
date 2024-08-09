@@ -10,8 +10,6 @@ interface LocalHistoryDataSource {
 
     suspend fun getAllChatHistoriesWithMessages(): Result<List<ChatHistoryWithMessages>>
 
-    suspend fun insertMessageContent(messageContent: MessageContentEntity)
-
     suspend fun insertChatHistoryWithMessages(
         chatHistoryEntity: ChatHistoryEntity,
         messageContentEntitys: List<MessageContentEntity>,

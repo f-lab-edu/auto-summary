@@ -37,12 +37,6 @@ class LocalHistoryDataSourceImpl @Inject constructor(
             }
         }
 
-    override suspend fun insertMessageContent(messageContent: MessageContentEntity) {
-        withContext(Dispatchers.IO) {
-            messageContentDao.insertMessageContent(messageContent)
-        }
-    }
-
     @Transaction
     override suspend fun insertChatHistoryWithMessages(
         chatHistoryEntity: ChatHistoryEntity,

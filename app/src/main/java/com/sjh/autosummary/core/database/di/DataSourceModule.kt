@@ -1,7 +1,9 @@
 package com.sjh.autosummary.core.database.di
 
-import com.sjh.autosummary.core.database.LocalDataSource
-import com.sjh.autosummary.core.database.room.db.RoomDatabaseDaos
+import com.sjh.autosummary.core.database.LocalHistoryDataSource
+import com.sjh.autosummary.core.database.LocalSummaryDataSource
+import com.sjh.autosummary.core.database.room.LocalHistoryDataSourceImpl
+import com.sjh.autosummary.core.database.room.LocalSummaryDataSourceImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -13,5 +15,9 @@ import javax.inject.Singleton
 abstract class DataSourceModule {
     @Binds
     @Singleton
-    abstract fun bindLocalDataSource(roomDatabaseDaos: RoomDatabaseDaos): LocalDataSource
+    abstract fun bindLocalHistoryDataSource(localHistoryDataSourceImpl: LocalHistoryDataSourceImpl): LocalHistoryDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindLocalSummaryDataSource(localSummaryDataSourceImpl: LocalSummaryDataSourceImpl): LocalSummaryDataSource
 }

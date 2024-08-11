@@ -109,8 +109,7 @@ fun HistroyContent(
         verticalArrangement = Arrangement.Bottom,
     ) {
         LazyColumn(
-            modifier =
-            modifier
+            modifier = modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
@@ -162,8 +161,7 @@ fun ChatHistoryItem(
         }
 
         Spacer(
-            modifier =
-            modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .height(1.dp)
                 .background(color = Color.DarkGray),

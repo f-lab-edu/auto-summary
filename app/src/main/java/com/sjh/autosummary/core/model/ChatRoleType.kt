@@ -1,6 +1,8 @@
 package com.sjh.autosummary.core.model
 
-enum class ChatRoleType(val role: String) {
+enum class ChatRoleType(
+    val role: String
+) {
     SYSTEM(role = "system"),
     USER(role = "user"),
     GPT(role = "assistant"),

@@ -21,17 +21,19 @@ class HistoryRepositoryImpl @Inject constructor(
             it.toMessageContentEntity(chatHistoryEntity.id)
         }
 
-        return if (chatHistory.id != null)
+        return if (chatHistory.id != null) {
             updateExistingChatHistory(
                 chatHistoryId = chatHistory.id,
                 chatHistoryEntity = chatHistoryEntity,
                 messageContentEntities = messageContentEntities
             )
-        else
+        }
+        else {
             addNewChatHistory(
                 chatHistoryEntity = chatHistoryEntity,
                 messageContentEntities = messageContentEntities
             )
+        }
     }
 
     override suspend fun findChatHistory(chatHistoryId: Long): Result<ChatHistory?> =
@@ -90,7 +92,6 @@ class HistoryRepositoryImpl @Inject constructor(
                 messageContentEntities = messageContentEntities
             )
             .getOrNull()
-
 }
 
 private fun ChatHistory.toChatHistoryEntity() =

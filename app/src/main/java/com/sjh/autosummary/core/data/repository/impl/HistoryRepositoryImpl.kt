@@ -27,8 +27,7 @@ class HistoryRepositoryImpl @Inject constructor(
                 chatHistoryEntity = chatHistoryEntity,
                 messageContentEntities = messageContentEntities
             )
-        }
-        else {
+        } else {
             addNewChatHistory(
                 chatHistoryEntity = chatHistoryEntity,
                 messageContentEntities = messageContentEntities

@@ -21,20 +21,17 @@ class HistoryRepositoryImpl @Inject constructor(
             it.toMessageContentEntity(chatHistoryEntity.id)
         }
 
-        return if (chatHistory.id != null) {
-            val existingChatHistory = localHistoryDataSource.getChatHistoryById(chatHistory.id)
-            existingChatHistory.getOrNull()?.let {
-                localHistoryDataSource.updateChatHistoryWithMessage(
-                    chatHistoryEntity = chatHistoryEntity,
-                    messageContentEntities = messageContentEntities
-                )
-            }
-        } else {
-            localHistoryDataSource.insertChatHistoryWithMessages(
+        return if (chatHistory.id != null)
+            updateExistingChatHistory(
+                chatHistoryId = chatHistory.id,
                 chatHistoryEntity = chatHistoryEntity,
                 messageContentEntities = messageContentEntities
             )
-        }?.getOrNull()
+        else
+            addNewChatHistory(
+                chatHistoryEntity = chatHistoryEntity,
+                messageContentEntities = messageContentEntities
+            )
     }
 
     override suspend fun findChatHistory(chatHistoryId: Long): Result<ChatHistory?> =
@@ -53,7 +50,8 @@ class HistoryRepositoryImpl @Inject constructor(
     override suspend fun retrieveAllChatHistories(): Result<List<ChatHistory>> =
         withContext(Dispatchers.IO) {
             try {
-                localHistoryDataSource.getAllChatHistoriesWithMessages()
+                localHistoryDataSource
+                    .getAllChatHistoriesWithMessages()
                     .mapCatching { entities ->
                         entities.map(ChatHistoryWithMessages::toChatHistory)
                     }
@@ -65,6 +63,34 @@ class HistoryRepositoryImpl @Inject constructor(
     override suspend fun deleteChatHistory(chatHistory: ChatHistory) {
         localHistoryDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
     }
+
+    private suspend fun updateExistingChatHistory(
+        chatHistoryId: Long,
+        chatHistoryEntity: ChatHistoryEntity,
+        messageContentEntities: List<MessageContentEntity>
+    ): Long? {
+        val existingChatHistory = localHistoryDataSource.getChatHistoryById(chatHistoryId)
+        return existingChatHistory
+            .getOrNull()?.let {
+                localHistoryDataSource.updateChatHistoryWithMessage(
+                    chatHistoryEntity = chatHistoryEntity,
+                    messageContentEntities = messageContentEntities
+                )
+            }
+            ?.getOrNull()
+    }
+
+    private suspend fun addNewChatHistory(
+        chatHistoryEntity: ChatHistoryEntity,
+        messageContentEntities: List<MessageContentEntity>
+    ): Long? =
+        localHistoryDataSource
+            .insertChatHistoryWithMessages(
+                chatHistoryEntity = chatHistoryEntity,
+                messageContentEntities = messageContentEntities
+            )
+            .getOrNull()
+
 }
 
 private fun ChatHistory.toChatHistoryEntity() =

@@ -18,9 +18,9 @@ class RetrofitGpt @Inject constructor(
     okhttpCallFactory: dagger.Lazy<Call.Factory>,
 ) : NetworkDataSource {
 
-    companion object {
-        private const val BASE_URL = "https://api.openai.com/v1/"
-        private const val GPT_API_KEY = BuildConfig.GPT_API_KEY
+    private companion object {
+        const val BASE_URL = "https://api.openai.com/v1/"
+        const val GPT_API_KEY = BuildConfig.GPT_API_KEY
     }
 
     private val networkApi =

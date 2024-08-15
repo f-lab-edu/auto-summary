@@ -44,9 +44,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Access GPT_API_KEY
-      env:
-        GPT_API_KEY: ${{ secrets.GPT_API_KEY }}
-      run: echo "GPT_API_KEY=$GPT_API_KEY" > ./local.properties
+      run: echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" > ./local.properties
 
     - name: Build with Gradle
       run: ./gradlew build

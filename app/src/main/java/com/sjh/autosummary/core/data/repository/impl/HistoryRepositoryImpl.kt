@@ -71,14 +71,16 @@ class HistoryRepositoryImpl @Inject constructor(
         messageContentEntities: List<MessageContentEntity>
     ): Long? {
         val existingChatHistory = localHistoryDataSource.getChatHistoryById(chatHistoryId)
-        return existingChatHistory
-            .getOrNull()?.let {
-                localHistoryDataSource.updateChatHistoryWithMessage(
-                    chatHistoryEntity = chatHistoryEntity,
-                    messageContentEntities = messageContentEntities
-                )
-            }
-            ?.getOrNull()
+
+        return if (existingChatHistory.isSuccess) {
+            val updateResult = localHistoryDataSource.updateChatHistoryWithMessage(
+                chatHistoryEntity = chatHistoryEntity,
+                messageContentEntities = messageContentEntities
+            )
+            updateResult.getOrNull()
+        } else {
+            null
+        }
     }
 
     private suspend fun addNewChatHistory(

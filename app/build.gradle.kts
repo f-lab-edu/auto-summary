@@ -17,7 +17,7 @@ android {
     val properties = Properties().apply {
         load(FileInputStream(rootProject.file("local.properties")))
     }
-    val apiKey = properties["GPT_API_KEY"] ?: ""
+    val apiKey = properties["GPT_API_KEY"]?.toString().orEmpty()
     defaultConfig {
         applicationId = "com.sjh.autosummary"
         minSdk = 26

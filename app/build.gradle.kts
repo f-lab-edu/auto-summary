@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -11,7 +14,10 @@ plugins {
 android {
     namespace = "com.sjh.autosummary"
     compileSdk = 34
-
+    val properties = Properties().apply {
+        load(FileInputStream(rootProject.file("local.properties")))
+    }
+    val apiKey = properties["GPT_API_KEY"]?.toString().orEmpty()
     defaultConfig {
         applicationId = "com.sjh.autosummary"
         minSdk = 26
@@ -23,6 +29,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "GPT_API_KEY", "\"$apiKey\"")
     }
 
     buildTypes {
@@ -43,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.8"

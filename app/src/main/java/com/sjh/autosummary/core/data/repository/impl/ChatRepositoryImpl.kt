@@ -21,11 +21,13 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun createChatCompletion(chatRequest: ChatRequest): Result<ChatResponse> =
         withContext(Dispatchers.IO) {
             try {
-                networkDataSource.createChatCompletion(
-                    chatRequest = chatRequest.toGptChatRequest(),
-                ).mapCatching { entity ->
-                    entity.toChatResponse()
-                }
+                networkDataSource
+                    .createChatCompletion(
+                        chatRequest = chatRequest.toGptChatRequest(),
+                    )
+                    .mapCatching { entity ->
+                        entity.toChatResponse()
+                    }
             } catch (e: Exception) {
                 Result.failure(e)
             }
@@ -44,7 +46,8 @@ private fun ChatRequest.toGptChatRequest() =
         messages = listOf(
             GptConst.DEFAULT_REQUEST_MESSAGE,
             requestMessage,
-        ).map(MessageContent::toGptMessageContent),
+        )
+            .map(MessageContent::toGptMessageContent),
         model = GptConst.DEFAULT_GPT_MODEL,
     )
 

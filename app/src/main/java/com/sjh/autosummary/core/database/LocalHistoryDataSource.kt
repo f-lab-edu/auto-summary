@@ -22,4 +22,6 @@ interface LocalHistoryDataSource {
     ): Result<Long>
 
     suspend fun deleteChatHistory(chatHistory: ChatHistoryEntity)
+
+    suspend fun deleteAllChatHistories()
 }

@@ -1,6 +1,7 @@
 package com.sjh.autosummary.feature.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,30 +42,53 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sjh.autosummary.R
+import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
+import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.core.model.ChatRoleType
-import com.sjh.autosummary.core.model.MessageContent
+import com.sjh.autosummary.feature.main.contract.event.MainScreenEvent
+import com.sjh.autosummary.feature.main.contract.sideeffect.MainScreenSideEffect
+import com.sjh.autosummary.feature.main.contract.state.MainScreenState
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
-// Todo : messageList를 인덱스나 날짜로 변경해서 MainViewModel에서 db를 조회하는 방식으로 변경
 @Composable
 fun MainRoute(
     onHistoryClick: () -> Unit,
-    chatHistoryId: Long?,
+    chatHistoryId: Long,
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.collectAsState()
+
+    viewModel.collectSideEffect {
+        when (it) {
+            is MainScreenSideEffect.Toast -> {}
+        }
+    }
+
+    LaunchedEffect(chatHistoryId) {
+        viewModel.handleEvent(MainScreenEvent.CreateOrLoadChatHistory(chatHistoryId = chatHistoryId))
+    }
+
     MainScreen(
-        // Todo : state로 변경
-        messageList = listOf(),
-        onHistoryClick = onHistoryClick,
+        state = state,
+        onHistoryClick = {
+            onHistoryClick()
+            viewModel.handleEvent(MainScreenEvent.OnHistoryClick)
+        },
+        onSearchClick = { content ->
+            viewModel.handleEvent(MainScreenEvent.OnSearchClick(content))
+        },
         modifier = modifier,
     )
 }
 
 @Composable
 fun MainScreen(
+    state: MainScreenState,
     onHistoryClick: () -> Unit,
-    messageList: List<MessageContent>,
+    onSearchClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -76,7 +101,8 @@ fun MainScreen(
             modifier = Modifier.padding(padding),
         ) {
             MainContent(
-                messageList = messageList,
+                chatHistoryState = state.chatHistoryState,
+                onSearchClick = onSearchClick,
             )
         }
     }
@@ -105,33 +131,54 @@ private fun MainTopBar(
 }
 
 @Composable
-fun MainContent(messageList: List<MessageContent>) {
+fun MainContent(
+    chatHistoryState: LoadState<ChatHistory>,
+    onSearchClick: (String) -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Bottom,
     ) {
         var searchWord by remember { mutableStateOf("") }
+        var isSearching by remember { mutableStateOf(false) }
 
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            reverseLayout = true,
+            verticalArrangement = Arrangement.Bottom,
         ) {
-            itemsIndexed(messageList) { index, message ->
-                when (message.role) {
-                    ChatRoleType.USER -> {
-                        UserMessageBubble(
-                            message = message.content,
-                        )
-                    }
+            when (chatHistoryState) {
+                LoadState.InProgress -> {
+                    isSearching = true
+                }
 
-                    ChatRoleType.GPT -> {
-                        AiMessageBubble(message = message.content)
-                    }
+                is LoadState.Succeeded -> {
+                    isSearching = false
+                    itemsIndexed(chatHistoryState.data.messageList) { index, message ->
+                        when (message.role) {
+                            ChatRoleType.USER -> {
+                                isSearching = true
+                                UserMessageBubble(
+                                    message = message.content,
+                                )
+                            }
 
-                    ChatRoleType.SYSTEM -> {}
+                            ChatRoleType.GPT -> {
+                                isSearching = false
+                                AiMessageBubble(message = message.content)
+                            }
+
+                            ChatRoleType.SYSTEM -> {
+                                isSearching = false
+                            }
+                        }
+                    }
+                }
+
+                is LoadState.Failed -> {
+                    isSearching = false
                 }
             }
         }
@@ -156,7 +203,14 @@ fun MainContent(messageList: List<MessageContent>) {
             Spacer(modifier = Modifier.width(8.dp))
 
             Icon(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable {
+                        if (!isSearching) {
+                            onSearchClick(searchWord)
+                            searchWord = ""
+                        }
+                    },
                 imageVector = Icons.Rounded.Send,
                 contentDescription = "Search",
                 tint = MaterialTheme.colorScheme.primary,
@@ -206,8 +260,9 @@ fun AiMessageBubble(message: String) {
 private fun MainScreenPreview() {
     AutoSummaryTheme {
         MainScreen(
+            state = MainScreenState(),
             onHistoryClick = {},
-            messageList = listOf(),
+            onSearchClick = {},
         )
     }
 }

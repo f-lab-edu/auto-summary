@@ -86,4 +86,10 @@ class LocalHistoryDataSourceImpl @Inject constructor(
             chatHistoryDao.deleteChatHistory(chatHistory)
         }
     }
+
+    override suspend fun deleteAllChatHistories() {
+        withContext(Dispatchers.IO) {
+            chatHistoryDao.deleteAllChatHistories()
+        }
+    }
 }

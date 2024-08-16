@@ -12,5 +12,5 @@ interface RetrofitGptApi {
         @Header("Content-Type") contentType: String = "application/json",
         @Header("Authorization") authorization: String,
         @Body chatRequest: GptChatRequest,
-    ): Result<GptChatResponse>
+    ): GptChatResponse
 }

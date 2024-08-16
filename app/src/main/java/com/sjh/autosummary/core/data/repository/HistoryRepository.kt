@@ -10,4 +10,6 @@ interface HistoryRepository {
     suspend fun retrieveAllChatHistories(): Result<List<ChatHistory>>
 
     suspend fun deleteChatHistory(chatHistory: ChatHistory)
+
+    suspend fun deleteAllChatHistories()
 }

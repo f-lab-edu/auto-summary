@@ -12,7 +12,7 @@ const val MAIN_ROUTE = "/main"
 const val HISTORYDATA_KEY = "messagelist"
 
 fun NavController.navigateToMain(data: Long) {
-    navigate("$MAIN_ROUTE/$data")
+    navigate("$MAIN_ROUTE/$HISTORYDATA_KEY/$data")
 }
 
 fun NavGraphBuilder.mainScreen(
@@ -24,7 +24,7 @@ fun NavGraphBuilder.mainScreen(
         route = "$MAIN_ROUTE/{$HISTORYDATA_KEY}",
         arguments = listOf(navArgument(dataKey) { type = NavType.LongType }),
     ) { backStackEntry ->
-        val chatHistoryId = backStackEntry.arguments?.getLong(dataKey)
+        val chatHistoryId = backStackEntry.arguments?.getLong(dataKey) ?: 0L
         MainRoute(
             onHistoryClick = onHistoryClick,
             chatHistoryId = chatHistoryId,

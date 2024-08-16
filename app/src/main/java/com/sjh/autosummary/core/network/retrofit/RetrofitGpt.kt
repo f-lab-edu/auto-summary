@@ -34,10 +34,11 @@ class RetrofitGpt @Inject constructor(
 
     override suspend fun createChatCompletion(chatRequest: GptChatRequest): Result<GptChatResponse> =
         try {
-            networkApi.createChatCompletion(
+            val response = networkApi.createChatCompletion(
                 authorization = "Bearer $GPT_API_KEY",
                 chatRequest = chatRequest,
             )
+            Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
         }

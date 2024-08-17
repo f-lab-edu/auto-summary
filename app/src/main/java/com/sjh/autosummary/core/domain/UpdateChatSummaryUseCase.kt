@@ -27,7 +27,7 @@ class UpdateChatSummaryUseCase @Inject constructor(
 
                 val summaries = retrieveResult.getOrThrow()
                 val summariesInJson = convertChatSummaryToJson(summaries.firstOrNull())
-                Log.d("whatisthis", "summariesInJson ${summariesInJson}")
+                Log.d("whatisthis", "summariesInJson $summariesInJson")
 
                 // 2. 답변 내용 요약
                 val summarizedResponseResult = chatRepository.createChatCompletion(
@@ -40,7 +40,7 @@ class UpdateChatSummaryUseCase @Inject constructor(
                     // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성
                     val summaryRequestContent =
                         buildRequestFormForSummary(summariesInJson, content.content)
-                    Log.d("whatisthis", "summaryRequestContent ${summaryRequestContent}")
+                    Log.d("whatisthis", "summaryRequestContent $summaryRequestContent")
                     // 4. 요청 메시지로 요약 요청
                     val requestResult = chatRepository.createChatCompletion(
                         chatRequest = ChatRequest(
@@ -50,7 +50,7 @@ class UpdateChatSummaryUseCase @Inject constructor(
                             )
                         )
                     )
-                    Log.d("whatisthis", "requestResult ${requestResult}")
+                    Log.d("whatisthis", "requestResult $requestResult")
                     // (요약 실패 처리)
                     if (requestResult.isFailure) return@withContext Result.success(false)
                     // 5. 새로운 요약 정보로 데이터 갱신
@@ -70,7 +70,7 @@ class UpdateChatSummaryUseCase @Inject constructor(
         "${summariesInJson.replace("\"", "\\\"")}"
         "${userContent.replace("\"", "\\\"")}"
         위 내용들을 요약해서
-        ${chatSummaryInJsonForm}
+        $chatSummaryInJsonForm
         이러한 형태의 json 문자열로 작성해줘
         """.trimIndent()
 

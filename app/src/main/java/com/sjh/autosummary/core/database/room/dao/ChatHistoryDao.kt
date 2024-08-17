@@ -33,6 +33,6 @@ interface ChatHistoryDao {
     suspend fun getChatHistoryWithMessagesById(chatHistoryId: Long): ChatHistoryWithMessages?
 
     @Transaction
-    @Query("SELECT * FROM chat_history")
+    @Query("SELECT * FROM chat_history ORDER BY id ASC")
     suspend fun getAllChatHistoriesWithMessages(): List<ChatHistoryWithMessages>
 }

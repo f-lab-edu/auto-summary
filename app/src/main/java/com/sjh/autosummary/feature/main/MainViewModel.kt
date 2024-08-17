@@ -1,11 +1,13 @@
 package com.sjh.autosummary.feature.main
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.data.model.ChatRequest
 import com.sjh.autosummary.core.data.repository.ChatRepository
 import com.sjh.autosummary.core.data.repository.HistoryRepository
+import com.sjh.autosummary.core.domain.UpdateChatSummaryUseCase
 import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.core.model.ChatRoleType
 import com.sjh.autosummary.core.model.MessageContent
@@ -27,6 +29,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val historyRepository: HistoryRepository,
+    private val updateChatSummaryUseCase: UpdateChatSummaryUseCase,
 ) : ViewModel(), ContainerHost<MainScreenState, MainScreenSideEffect> {
 
     override val container: Container<MainScreenState, MainScreenSideEffect> =
@@ -72,12 +75,20 @@ class MainViewModel @Inject constructor(
 
                 val newChatHistory = getInitialChatHistory()
 
-                historyRepository.addOrUpdateChatHistory(
+                val chatHistoryId = historyRepository.addOrUpdateChatHistory(
                     chatHistory = newChatHistory
                 )
 
-                reduce {
-                    state.copy(chatHistoryState = LoadState.Succeeded(data = newChatHistory))
+                chatHistoryId?.let { id ->
+                    reduce {
+                        state.copy(
+                            chatHistoryState = LoadState.Succeeded(
+                                data = newChatHistory.copy(
+                                    id = id
+                                )
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -86,8 +97,6 @@ class MainViewModel @Inject constructor(
     private fun loadChatHistory(chatHistoryId: Long) {
         viewModelScope.launch {
             container.orbit {
-                if (state.chatHistoryState !is LoadState.Succeeded) return@orbit
-
                 var chatHistory = ChatHistory(
                     id = chatHistoryId,
                     date = getTodayDate(),
@@ -130,6 +139,7 @@ class MainViewModel @Inject constructor(
                     (state.chatHistoryState as? LoadState.Succeeded) ?: return@orbit
 
                 val currentChatHistory = currentUiState.data
+
                 val currentMessageList = currentChatHistory.messageList.toMutableList()
 
                 val myMessage = MessageContent(
@@ -157,6 +167,7 @@ class MainViewModel @Inject constructor(
                         val gptMessage = chatResponse.responseMessage
                         if (gptMessage != null) {
                             currentMessageList.add(gptMessage)
+                            val result = updateChatSummaryUseCase(gptMessage).getOrNull()
                         } else {
                             currentMessageList.add(
                                 getErrorMessageContent(errorMessage = "답변 결과 없음")

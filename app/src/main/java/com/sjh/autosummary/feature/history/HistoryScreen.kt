@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,22 +33,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sjh.autosummary.R
+import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatHistory
-import com.sjh.autosummary.feature.main.MainViewModel
+import com.sjh.autosummary.feature.history.contract.sideeffect.HistoryScreenSideEffect
+import com.sjh.autosummary.feature.history.contract.state.HistoryScreenState
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun HistoryRoute(
     onChatHistoryClick: (Long) -> Unit,
     onSummaryClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: MainViewModel = hiltViewModel(),
+    viewModel: HistoryViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.collectAsState()
+
+    viewModel.collectSideEffect {
+        when (it) {
+            is HistoryScreenSideEffect.Toast -> {}
+        }
+    }
+
     HistoryScreen(
+        state = state,
         onChatHistoryClick = onChatHistoryClick,
         onSummaryClick = onSummaryClick,
-        // Todo : State로 변경
-        chatHistoryList = listOf(),
         modifier = modifier,
     )
 }
@@ -56,7 +68,7 @@ fun HistoryRoute(
 fun HistoryScreen(
     onChatHistoryClick: (Long) -> Unit,
     onSummaryClick: () -> Unit,
-    chatHistoryList: List<ChatHistory>,
+    state: HistoryScreenState,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -69,7 +81,7 @@ fun HistoryScreen(
         ) {
             HistroyContent(
                 onChatHistoryClick = onChatHistoryClick,
-                chatHistoryList = chatHistoryList,
+                chatHistoriesState = state.chatHistoriesState,
                 modifier = modifier,
             )
         }
@@ -101,7 +113,7 @@ fun HistoryTopBar(
 @Composable
 fun HistroyContent(
     onChatHistoryClick: (Long) -> Unit,
-    chatHistoryList: List<ChatHistory>,
+    chatHistoriesState: LoadState<List<ChatHistory>>,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -114,12 +126,24 @@ fun HistroyContent(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
         ) {
-            itemsIndexed(chatHistoryList) { idx, chat ->
-                ChatHistoryItem(
-                    onChatHistoryClick = onChatHistoryClick,
-                    chat = chat,
-                    modifier = modifier,
-                )
+            when (chatHistoriesState) {
+                LoadState.InProgress -> {
+                    /* Todo : 로딩 화면 */
+                }
+
+                is LoadState.Succeeded -> {
+                    itemsIndexed(chatHistoriesState.data) { idx, chat ->
+                        ChatHistoryItem(
+                            onChatHistoryClick = onChatHistoryClick,
+                            chat = chat,
+                            modifier = modifier,
+                        )
+                    }
+                }
+
+                is LoadState.Failed -> {
+                    /* Todo : 로드 실패 토스트 */
+                }
             }
         }
     }
@@ -176,7 +200,7 @@ private fun HistoryScreenPreview() {
         HistoryScreen(
             onChatHistoryClick = { a -> },
             onSummaryClick = {},
-            chatHistoryList = listOf(),
+            state = HistoryScreenState(),
         )
     }
 }

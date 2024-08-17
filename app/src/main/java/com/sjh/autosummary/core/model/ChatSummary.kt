@@ -2,6 +2,7 @@ package com.sjh.autosummary.core.model
 
 import kotlinx.serialization.Serializable
 
+@Serializable
 data class ChatSummary(
     val id: Long,
     val title: String,

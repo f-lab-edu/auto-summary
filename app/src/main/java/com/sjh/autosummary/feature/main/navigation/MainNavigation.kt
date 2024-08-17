@@ -12,7 +12,7 @@ const val MAIN_ROUTE = "/main"
 const val HISTORYDATA_KEY = "messagelist"
 
 fun NavController.navigateToMain(data: Long) {
-    navigate("$MAIN_ROUTE/$HISTORYDATA_KEY/$data")
+    navigate("$MAIN_ROUTE/$data")
 }
 
 fun NavGraphBuilder.mainScreen(
@@ -21,7 +21,7 @@ fun NavGraphBuilder.mainScreen(
     modifier: Modifier = Modifier,
 ) {
     composable(
-        route = "$MAIN_ROUTE/{$HISTORYDATA_KEY}",
+        route = "$MAIN_ROUTE/{$dataKey}",
         arguments = listOf(navArgument(dataKey) { type = NavType.LongType }),
     ) { backStackEntry ->
         val chatHistoryId = backStackEntry.arguments?.getLong(dataKey) ?: 0L

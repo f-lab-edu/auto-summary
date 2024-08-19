@@ -29,7 +29,8 @@ class MainViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val historyRepository: HistoryRepository,
     private val updateChatSummaryUseCase: UpdateChatSummaryUseCase,
-) : ViewModel(), ContainerHost<MainScreenState, MainScreenSideEffect> {
+) : ViewModel(),
+    ContainerHost<MainScreenState, MainScreenSideEffect> {
 
     override val container: Container<MainScreenState, MainScreenSideEffect> =
         container(initialState = MainScreenState())

@@ -18,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val historyRepository: HistoryRepository,
-) : ViewModel(), ContainerHost<HistoryScreenState, HistoryScreenSideEffect> {
+) : ViewModel(),
+    ContainerHost<HistoryScreenState, HistoryScreenSideEffect> {
     override val container: Container<HistoryScreenState, HistoryScreenSideEffect> =
         container(initialState = HistoryScreenState())
 

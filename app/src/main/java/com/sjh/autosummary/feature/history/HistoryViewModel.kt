@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.data.repository.HistoryRepository
+import com.sjh.autosummary.core.model.ChatHistory
+import com.sjh.autosummary.feature.history.contract.event.HistoryScreenEvent
 import com.sjh.autosummary.feature.history.contract.sideeffect.HistoryScreenSideEffect
 import com.sjh.autosummary.feature.history.contract.state.HistoryScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,13 +20,43 @@ import javax.inject.Inject
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val historyRepository: HistoryRepository,
-) : ViewModel(),
-    ContainerHost<HistoryScreenState, HistoryScreenSideEffect> {
+) : ViewModel(), ContainerHost<HistoryScreenState, HistoryScreenSideEffect> {
     override val container: Container<HistoryScreenState, HistoryScreenSideEffect> =
         container(initialState = HistoryScreenState())
 
     init {
         fetchAllChatHistroies()
+    }
+
+    fun handleEvent(event: HistoryScreenEvent) {
+        when (event) {
+            is HistoryScreenEvent.onChatHistoryLongClick -> {
+                deleteChatHistory(event.chatHistory)
+            }
+        }
+    }
+
+    private fun deleteChatHistory(chatHistory: ChatHistory) {
+        viewModelScope.launch {
+            container.orbit {
+                val currentUiState =
+                    (state.chatHistoriesState as? LoadState.Succeeded) ?: return@orbit
+
+                val currentChatHistories = currentUiState.data.toMutableList()
+
+                currentChatHistories.remove(chatHistory)
+
+                historyRepository.deleteChatHistory(chatHistory)
+
+                reduce {
+                    state.copy(
+                        chatHistoriesState = LoadState.Succeeded(
+                            data = currentChatHistories.toList()
+                        )
+                    )
+                }
+            }
+        }
     }
 
     private fun fetchAllChatHistroies() {
@@ -34,16 +66,13 @@ class HistoryViewModel @Inject constructor(
 
                 val result = historyRepository.retrieveAllChatHistories()
 
-                result.fold(
-                    onSuccess = { foundChatHistories ->
-                        reduce {
-                            state.copy(chatHistoriesState = LoadState.Succeeded(data = foundChatHistories))
-                        }
-                    },
-                    onFailure = {
-                        /* Todo : 데이터 불러오기 실패 토스트 띄우기 */
+                result.fold(onSuccess = { foundChatHistories ->
+                    reduce {
+                        state.copy(chatHistoriesState = LoadState.Succeeded(data = foundChatHistories))
                     }
-                )
+                }, onFailure = {
+                    /* Todo : 데이터 불러오기 실패 토스트 띄우기 */
+                })
             }
         }
     }

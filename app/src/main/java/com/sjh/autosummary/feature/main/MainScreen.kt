@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +47,7 @@ import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.core.model.ChatRoleType
+import com.sjh.autosummary.core.model.MessageContent
 import com.sjh.autosummary.feature.main.contract.event.MainScreenEvent
 import com.sjh.autosummary.feature.main.contract.sideeffect.MainScreenSideEffect
 import com.sjh.autosummary.feature.main.contract.state.MainScreenState
@@ -102,6 +104,7 @@ fun MainScreen(
         ) {
             MainContent(
                 chatHistoryState = state.chatHistoryState,
+                gptResponseState = state.gptResponseState,
                 onSearchClick = onSearchClick,
             )
         }
@@ -133,6 +136,7 @@ private fun MainTopBar(
 @Composable
 fun MainContent(
     chatHistoryState: LoadState<ChatHistory>,
+    gptResponseState: LoadState<Boolean>,
     onSearchClick: (String) -> Unit,
 ) {
     Column(
@@ -140,7 +144,7 @@ fun MainContent(
         verticalArrangement = Arrangement.Bottom,
     ) {
         var searchWord by remember { mutableStateOf("") }
-        var isSearching by remember { mutableStateOf(false) }
+//        var isSearching by remember { mutableStateOf(false) }
 
         LazyColumn(
             modifier = Modifier
@@ -151,34 +155,50 @@ fun MainContent(
         ) {
             when (chatHistoryState) {
                 LoadState.InProgress -> {
-                    isSearching = true
+//                    isSearching = true
+                    item {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        )
+                    }
                 }
 
                 is LoadState.Succeeded -> {
-                    isSearching = false
+//                    isSearching = false
                     itemsIndexed(chatHistoryState.data.messageList) { index, message ->
                         when (message.role) {
                             ChatRoleType.USER -> {
-                                isSearching = true
+//                                isSearching = true
                                 UserMessageBubble(
                                     message = message.content,
                                 )
                             }
 
                             ChatRoleType.GPT -> {
-                                isSearching = false
+//                                isSearching = false
                                 AiMessageBubble(message = message.content)
                             }
 
                             ChatRoleType.SYSTEM -> {
-                                isSearching = false
+//                                isSearching = false
                             }
                         }
                     }
                 }
 
                 is LoadState.Failed -> {
-                    isSearching = false
+//                    isSearching = false
+                }
+            }
+
+            if (gptResponseState is LoadState.InProgress) {
+                item {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    )
                 }
             }
         }
@@ -206,10 +226,17 @@ fun MainContent(
                 modifier = Modifier
                     .size(40.dp)
                     .clickable {
-                        if (!isSearching) {
+                        if (chatHistoryState is LoadState.InProgress || gptResponseState is LoadState.InProgress) return@clickable
+
+                        if (gptResponseState is LoadState.Succeeded) {
                             onSearchClick(searchWord)
                             searchWord = ""
                         }
+
+//                        if (!isSearching) {
+//                            onSearchClick(searchWord)
+//                            searchWord = ""
+//                        }
                     },
                 imageVector = Icons.Rounded.Send,
                 contentDescription = "Search",

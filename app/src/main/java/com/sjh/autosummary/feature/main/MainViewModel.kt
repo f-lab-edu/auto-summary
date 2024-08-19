@@ -103,23 +103,20 @@ class MainViewModel @Inject constructor(
                     messageList = emptyList(),
                 )
 
-                val result = historyRepository.findChatHistory(
+                val chatHistoryResult = historyRepository.findChatHistory(
                     chatHistoryId = chatHistoryId
-                )
+                ).getOrNull()
 
-                result.fold(
-                    onSuccess = { foundChatHistory ->
-                        chatHistory = ChatHistory(
-                            id = chatHistoryId,
-                            date = foundChatHistory?.date.orEmpty(),
-                            messageList = foundChatHistory?.messageList.orEmpty(),
-                            name = foundChatHistory?.name.orEmpty()
-                        )
-                    },
-                    onFailure = {
-                        /* Todo : 데이터 불러오기 실패 토스트 띄우기 */
-                    }
-                )
+                if (chatHistoryResult != null) {
+                    chatHistory = ChatHistory(
+                        id = chatHistoryId,
+                        date = chatHistoryResult.date,
+                        messageList = chatHistoryResult.messageList,
+                        name = chatHistoryResult.name
+                    )
+                } else {
+                    /* Todo : 데이터 불러오기 실패 토스트 띄우기 */
+                }
 
                 reduce {
                     state.copy(
@@ -135,11 +132,12 @@ class MainViewModel @Inject constructor(
     private fun searchContent(content: String) {
         viewModelScope.launch {
             container.orbit {
-                val currentUiState =
+                val currentChatHistoryUiState =
                     (state.chatHistoryState as? LoadState.Succeeded) ?: return@orbit
 
-                val currentChatHistory = currentUiState.data
+                if (state.gptResponseState !is LoadState.Succeeded) return@orbit
 
+                val currentChatHistory = currentChatHistoryUiState.data
                 val currentMessageList = currentChatHistory.messageList.toMutableList()
 
                 val myMessage = MessageContent(
@@ -150,39 +148,45 @@ class MainViewModel @Inject constructor(
 
                 reduce {
                     state.copy(
+                        gptResponseState = LoadState.InProgress,
                         chatHistoryState = LoadState.Succeeded(
                             data = currentChatHistory.copy(messageList = currentMessageList.toList())
                         )
                     )
                 }
 
-                val result = chatRepository.createChatCompletion(
+                val chatResponseResult = chatRepository.createChatCompletion(
                     chatRequest = ChatRequest(
                         requestMessage = myMessage
                     )
-                )
+                ).getOrElse { error ->
+                    currentMessageList.add(
+                        getErrorMessageContent(errorMessage = error.message.toString())
+                    )
+                    null
+                }
 
-                result.fold(
-                    onSuccess = { chatResponse ->
-                        val gptMessage = chatResponse.responseMessage
-                        if (gptMessage != null) {
-                            currentMessageList.add(gptMessage)
-                            val result = updateChatSummaryUseCase(gptMessage).getOrNull()
-                        } else {
-                            currentMessageList.add(
-                                getErrorMessageContent(errorMessage = "답변 결과 없음")
-                            )
+
+                val gptResponse = if (chatResponseResult != null) {
+                    val gptMessage = chatResponseResult.responseMessage
+
+                    if (gptMessage != null) {
+                        currentMessageList.add(gptMessage)
+                        updateChatSummaryUseCase(gptMessage).getOrElse {
+                            null
                         }
-                    },
-                    onFailure = { error ->
-                        currentMessageList.add(
-                            getErrorMessageContent(errorMessage = error.message.toString())
-                        )
+                        true
+                    } else {
+                        currentMessageList.add(getErrorMessageContent(errorMessage = "답변 결과 없음"))
+                        false
                     }
-                )
+                } else {
+                    false
+                }
 
                 reduce {
                     state.copy(
+                        gptResponseState = LoadState.Succeeded(gptResponse),
                         chatHistoryState = LoadState.Succeeded(
                             data = currentChatHistory.copy(
                                 messageList = currentMessageList.toList()

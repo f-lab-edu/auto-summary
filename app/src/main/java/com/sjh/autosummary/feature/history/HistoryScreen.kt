@@ -2,6 +2,7 @@ package com.sjh.autosummary.feature.history
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,6 +39,7 @@ import com.sjh.autosummary.R
 import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatHistory
+import com.sjh.autosummary.feature.history.contract.event.HistoryScreenEvent
 import com.sjh.autosummary.feature.history.contract.sideeffect.HistoryScreenSideEffect
 import com.sjh.autosummary.feature.history.contract.state.HistoryScreenState
 import org.orbitmvi.orbit.compose.collectAsState
@@ -59,6 +63,9 @@ fun HistoryRoute(
     HistoryScreen(
         state = state,
         onChatHistoryClick = onChatHistoryClick,
+        onChatHistoryLongClick = { chatHistory ->
+            viewModel.handleEvent(HistoryScreenEvent.onChatHistoryLongClick(chatHistory))
+        },
         onSummaryClick = onSummaryClick,
         modifier = modifier,
     )
@@ -67,6 +74,7 @@ fun HistoryRoute(
 @Composable
 fun HistoryScreen(
     onChatHistoryClick: (Long) -> Unit,
+    onChatHistoryLongClick: (ChatHistory) -> Unit,
     onSummaryClick: () -> Unit,
     state: HistoryScreenState,
     modifier: Modifier = Modifier,
@@ -81,6 +89,7 @@ fun HistoryScreen(
         ) {
             HistroyContent(
                 onChatHistoryClick = onChatHistoryClick,
+                onChatHistoryLongClick = onChatHistoryLongClick,
                 chatHistoriesState = state.chatHistoriesState,
                 modifier = modifier,
             )
@@ -113,6 +122,7 @@ fun HistoryTopBar(
 @Composable
 fun HistroyContent(
     onChatHistoryClick: (Long) -> Unit,
+    onChatHistoryLongClick: (ChatHistory) -> Unit,
     chatHistoriesState: LoadState<List<ChatHistory>>,
     modifier: Modifier = Modifier,
 ) {
@@ -128,14 +138,21 @@ fun HistroyContent(
         ) {
             when (chatHistoriesState) {
                 LoadState.InProgress -> {
-                    /* Todo : 로딩 화면 */
+                    item {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        )
+                    }
                 }
 
                 is LoadState.Succeeded -> {
-                    itemsIndexed(chatHistoriesState.data) { idx, chat ->
+                    itemsIndexed(chatHistoriesState.data) { idx, history ->
                         ChatHistoryItem(
+                            onChatHistoryLongClick = onChatHistoryLongClick,
                             onChatHistoryClick = onChatHistoryClick,
-                            chat = chat,
+                            history = history,
                             modifier = modifier,
                         )
                     }
@@ -151,8 +168,9 @@ fun HistroyContent(
 
 @Composable
 fun ChatHistoryItem(
+    onChatHistoryLongClick: (ChatHistory) -> Unit,
     onChatHistoryClick: (Long) -> Unit,
-    chat: ChatHistory,
+    history: ChatHistory,
     modifier: Modifier,
 ) {
     Column(
@@ -160,7 +178,14 @@ fun ChatHistoryItem(
             .fillMaxWidth()
             .wrapContentHeight()
             .clickable {
-                chat.id?.let(onChatHistoryClick)
+                history.id?.let(onChatHistoryClick)
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        onChatHistoryLongClick(history)
+                    }
+                )
             },
     ) {
         Row(
@@ -173,13 +198,13 @@ fun ChatHistoryItem(
         ) {
             Text(
                 modifier = Modifier.wrapContentSize(),
-                text = chat.date,
+                text = history.date,
                 fontSize = 16.sp,
             )
 
             Text(
                 modifier = Modifier.wrapContentSize(),
-                text = chat.name,
+                text = history.name,
                 fontSize = 16.sp,
             )
         }
@@ -199,6 +224,7 @@ private fun HistoryScreenPreview() {
     AutoSummaryTheme {
         HistoryScreen(
             onChatHistoryClick = { a -> },
+            onChatHistoryLongClick = { a -> },
             onSummaryClick = {},
             state = HistoryScreenState(),
         )

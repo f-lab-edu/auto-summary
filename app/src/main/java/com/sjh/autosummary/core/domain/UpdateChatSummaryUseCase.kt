@@ -99,11 +99,11 @@ class UpdateChatSummaryUseCase @Inject constructor(
               "head": "",
               "body": "",
               "informationForm": {
-                "head": "(Nested)",
-                "body": "(Nested)",
+                "head": "",
+                "body": "",
                 "informationForm": {
-                  "head": "(Deeply Nested)",
-                  "body": "(Deeply Nested)",
+                  "head": "",
+                  "body": "",
                   "informationForm": null
                 }
               }

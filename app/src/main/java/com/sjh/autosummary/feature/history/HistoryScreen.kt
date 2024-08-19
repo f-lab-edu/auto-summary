@@ -177,13 +177,13 @@ fun ChatHistoryItem(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable {
-                history.id?.let(onChatHistoryClick)
-            }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
                         onChatHistoryLongClick(history)
+                    },
+                    onTap = {
+                        history.id?.let(onChatHistoryClick)
                     }
                 )
             },

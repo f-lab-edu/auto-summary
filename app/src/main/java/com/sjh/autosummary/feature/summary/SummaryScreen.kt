@@ -196,11 +196,13 @@ fun SummaryInformation(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable { onChatSummaryClick(summary) }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
                         onChatSummaryLongClick(summary)
+                    },
+                    onTap = {
+                        onChatSummaryClick(summary)
                     }
                 )
             },

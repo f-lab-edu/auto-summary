@@ -24,13 +24,10 @@ class HistoryViewModel @Inject constructor(
     override val container: Container<HistoryScreenState, HistoryScreenSideEffect> =
         container(initialState = HistoryScreenState())
 
-    init {
-        fetchAllChatHistroies()
-    }
-
     fun handleEvent(event: HistoryScreenEvent) {
         when (event) {
-            is HistoryScreenEvent.onChatHistoryLongClick -> {
+            HistoryScreenEvent.ShowAllChatHistory -> fetchAllChatHistroy()
+            is HistoryScreenEvent.OnChatHistoryLongClick -> {
                 deleteChatHistory(event.chatHistory)
             }
         }
@@ -40,7 +37,7 @@ class HistoryViewModel @Inject constructor(
         viewModelScope.launch {
             container.orbit {
                 val currentUiState =
-                    (state.chatHistoriesState as? LoadState.Succeeded) ?: return@orbit
+                    (state.chatHistoryState as? LoadState.Succeeded) ?: return@orbit
 
                 val currentChatHistories = currentUiState.data.toMutableList()
 
@@ -50,7 +47,7 @@ class HistoryViewModel @Inject constructor(
 
                 reduce {
                     state.copy(
-                        chatHistoriesState = LoadState.Succeeded(
+                        chatHistoryState = LoadState.Succeeded(
                             data = currentChatHistories.toList()
                         )
                     )
@@ -59,16 +56,16 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    private fun fetchAllChatHistroies() {
+    private fun fetchAllChatHistroy() {
         viewModelScope.launch {
             container.orbit {
-                if (state.chatHistoriesState is LoadState.Succeeded) return@orbit
+                if (state.chatHistoryState is LoadState.Succeeded) return@orbit
 
                 val result = historyRepository.retrieveAllChatHistories()
 
                 result.fold(onSuccess = { foundChatHistories ->
                     reduce {
-                        state.copy(chatHistoriesState = LoadState.Succeeded(data = foundChatHistories))
+                        state.copy(chatHistoryState = LoadState.Succeeded(data = foundChatHistories))
                     }
                 }, onFailure = {
                     /* Todo : 데이터 불러오기 실패 토스트 띄우기 */

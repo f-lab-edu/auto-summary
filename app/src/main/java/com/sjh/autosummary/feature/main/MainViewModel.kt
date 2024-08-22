@@ -37,7 +37,7 @@ class MainViewModel @Inject constructor(
 
     fun handleEvent(event: MainScreenEvent) {
         when (event) {
-            is MainScreenEvent.CreateOrLoadChatHistory -> {
+            is MainScreenEvent.StartChat -> {
                 if (event.chatHistoryId != 0L) {
                     loadChatHistory(event.chatHistoryId)
                 } else {
@@ -99,7 +99,7 @@ class MainViewModel @Inject constructor(
             container.orbit {
                 var chatHistory = ChatHistory(
                     id = chatHistoryId,
-                    date = getTodayDate(),
+                    date = getCurrentDate(),
                     messageList = emptyList(),
                 )
 
@@ -159,12 +159,13 @@ class MainViewModel @Inject constructor(
                     chatRequest = ChatRequest(
                         requestMessage = myMessage
                     )
-                ).getOrElse { error ->
-                    currentMessageList.add(
-                        getErrorMessageContent(errorMessage = error.message.toString())
-                    )
-                    null
-                }
+                )
+                    .getOrElse { error ->
+                        currentMessageList.add(
+                            getErrorMessageContent(errorMessage = error.message.toString())
+                        )
+                        null
+                    }
 
 
                 val gptResponse = if (chatResponseResult != null) {
@@ -172,9 +173,7 @@ class MainViewModel @Inject constructor(
 
                     if (gptMessage != null) {
                         currentMessageList.add(gptMessage)
-                        updateChatSummaryUseCase(gptMessage).getOrElse {
-                            null
-                        }
+                        updateChatSummaryUseCase(gptMessage)
                         true
                     } else {
                         currentMessageList.add(getErrorMessageContent(errorMessage = "답변 결과 없음"))
@@ -204,11 +203,11 @@ class MainViewModel @Inject constructor(
     )
 
     private fun getInitialChatHistory() = ChatHistory(
-        date = getTodayDate(),
+        date = getCurrentDate(),
         messageList = emptyList()
     )
 
-    private fun getTodayDate(): String {
+    private fun getCurrentDate(): String {
         val currentDate = LocalDate.now()
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         return currentDate.format(formatter)

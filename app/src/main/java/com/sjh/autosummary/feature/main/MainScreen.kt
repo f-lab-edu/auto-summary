@@ -47,7 +47,6 @@ import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.core.model.ChatRoleType
-import com.sjh.autosummary.core.model.MessageContent
 import com.sjh.autosummary.feature.main.contract.event.MainScreenEvent
 import com.sjh.autosummary.feature.main.contract.sideeffect.MainScreenSideEffect
 import com.sjh.autosummary.feature.main.contract.state.MainScreenState
@@ -65,12 +64,12 @@ fun MainRoute(
 
     viewModel.collectSideEffect {
         when (it) {
-            is MainScreenSideEffect.Toast -> {}
+            is MainScreenSideEffect.ShowToast -> {}
         }
     }
 
     LaunchedEffect(chatHistoryId) {
-        viewModel.handleEvent(MainScreenEvent.CreateOrLoadChatHistory(chatHistoryId = chatHistoryId))
+        viewModel.handleEvent(MainScreenEvent.StartChat(chatHistoryId = chatHistoryId))
     }
 
     MainScreen(
@@ -144,7 +143,6 @@ fun MainContent(
         verticalArrangement = Arrangement.Bottom,
     ) {
         var searchWord by remember { mutableStateOf("") }
-//        var isSearching by remember { mutableStateOf(false) }
 
         LazyColumn(
             modifier = Modifier
@@ -154,8 +152,7 @@ fun MainContent(
             verticalArrangement = Arrangement.Bottom,
         ) {
             when (chatHistoryState) {
-                LoadState.InProgress -> {
-//                    isSearching = true
+                LoadState.InProgress ->
                     item {
                         CircularProgressIndicator(
                             modifier = Modifier
@@ -163,34 +160,26 @@ fun MainContent(
                                 .padding(16.dp)
                         )
                     }
-                }
 
-                is LoadState.Succeeded -> {
-//                    isSearching = false
+                is LoadState.Succeeded ->
                     itemsIndexed(chatHistoryState.data.messageList) { index, message ->
                         when (message.role) {
                             ChatRoleType.USER -> {
-//                                isSearching = true
                                 UserMessageBubble(
                                     message = message.content,
                                 )
                             }
 
                             ChatRoleType.GPT -> {
-//                                isSearching = false
                                 AiMessageBubble(message = message.content)
                             }
 
                             ChatRoleType.SYSTEM -> {
-//                                isSearching = false
                             }
                         }
                     }
-                }
 
-                is LoadState.Failed -> {
-//                    isSearching = false
-                }
+                is LoadState.Failed -> {}
             }
 
             if (gptResponseState is LoadState.InProgress) {
@@ -232,11 +221,6 @@ fun MainContent(
                             onSearchClick(searchWord)
                             searchWord = ""
                         }
-
-//                        if (!isSearching) {
-//                            onSearchClick(searchWord)
-//                            searchWord = ""
-//                        }
                     },
                 imageVector = Icons.Rounded.Send,
                 contentDescription = "Search",

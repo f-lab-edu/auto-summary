@@ -26,19 +26,17 @@ class SummaryViewModel @Inject constructor(
     override val container: Container<SummaryScreenState, SummaryScreenSideEffect> =
         container(initialState = SummaryScreenState())
 
-    init {
-        loadChatSummaries()
-    }
-
     fun handleEvent(event: SummaryScreenEvent) {
         when (event) {
-            is SummaryScreenEvent.onChatSummaryLongClick -> {
+            is SummaryScreenEvent.OnChatSummaryLongClick -> {
                 deleteChatSummary(event.chatSummary)
             }
 
-            is SummaryScreenEvent.onChatSummaryClick -> {
+            is SummaryScreenEvent.OnChatSummaryClick -> {
                 moveToChatSummaryDetailScreen(event.chatSummary)
             }
+
+            SummaryScreenEvent.ShowAllChatSummary -> loadChatSummaries()
         }
     }
 
@@ -90,7 +88,7 @@ class SummaryViewModel @Inject constructor(
         viewModelScope.launch {
             container.orbit {
                 postSideEffect(
-                    SummaryScreenSideEffect.SummaryScreenDetailScreen(
+                    SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen(
                         chatSummary = chatSummary
                     )
                 )

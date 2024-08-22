@@ -17,61 +17,78 @@ class UpdateChatSummaryUseCase @Inject constructor(
     private val chatRepository: ChatRepository,
     private val summaryRepository: SummaryRepository,
 ) {
-    suspend operator fun invoke(messageContent: MessageContent): Result<Boolean> =
-        withContext(Dispatchers.IO) {
-            try {
-                // 1. 저장된 모든 요약 정보 가져오기
-                val retrieveResult = summaryRepository.retrieveAllChatSummaries()
-                // (요약 불가 처리)
-                if (retrieveResult.isFailure) return@withContext Result.success(false)
+    suspend operator fun invoke(messageContent: MessageContent): Result<Boolean> {
+        return try {
+            // 1. 저장된 모든 요약 정보 가져오기
+            val retrieveResult = summaryRepository.retrieveAllChatSummaries()
+            // (요약 불가 처리)
+            if (retrieveResult.isFailure) return Result.success(false)
 
-                val summaries = retrieveResult.getOrThrow()
-                val summariesInJson = convertChatSummaryToJson(summaries.firstOrNull())
-                Log.d("whatisthis", "summariesInJson $summariesInJson")
+            val summaries = retrieveResult.getOrThrow()
+            val summariesInJson = convertChatSummaryToJson(summaries.firstOrNull())
+            Log.d("whatisthis", "summariesInJson $summariesInJson")
 
-                // 2. 답변 내용 요약
-                val summarizedResponseResult = chatRepository.createChatCompletion(
-                    chatRequest = ChatRequest(
-                        requestMessage = messageContent
-                    )
-                )
-                if (summarizedResponseResult.isFailure) return@withContext Result.success(false)
-                summarizedResponseResult.getOrThrow().responseMessage?.let { content ->
-                    // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성
-                    val summaryRequestContent =
-                        buildRequestFormForSummary(summariesInJson, content.content)
-                    Log.d("whatisthis", "summaryRequestContent $summaryRequestContent")
-                    // 4. 요청 메시지로 요약 요청
-                    val requestResult = chatRepository.createChatCompletion(
-                        chatRequest = ChatRequest(
-                            requestMessage = MessageContent(
-                                content = summaryRequestContent,
-                                role = ChatRoleType.USER
-                            )
+            // 2. 답변 내용 요약
+            val summarizedResponseResult = chatRepository.createChatCompletion(
+                chatRequest = ChatRequest(
+                    requestMessage = messageContent.copy(
+                        content = buildRequestFormForSummary(
+                            messageContent.content
                         )
                     )
-                    Log.d("whatisthis", "requestResult $requestResult")
-                    // (요약 실패 처리)
-                    if (requestResult.isFailure) return@withContext Result.success(false)
-                    // 5. 새로운 요약 정보로 데이터 갱신
-                    requestResult.getOrThrow().responseMessage?.let { content ->
-                        addOrUpdateChatSummary(content.content)
-                    }
-                }
-                Result.success(true)
-            } catch (e: Exception) {
-                Log.d("whatisthis", e.toString())
-                Result.failure(e)
-            }
+                )
+            )
+
+            if (summarizedResponseResult.isFailure) return Result.success(false)
+
+            val summarizedResponse = summarizedResponseResult.getOrThrow().responseMessage
+
+            if (summarizedResponse == null) return Result.success(false)
+
+            // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성
+            val summaryRequestContent =
+                buildRequestFormForSummary(summariesInJson, summarizedResponse.content)
+            Log.d("whatisthis", "summaryRequestContent $summaryRequestContent")
+
+            // 4. (모든 요약 + 요약된 답변) 대한 요약 결과
+            val summarizedSummaryResult = chatRepository.createChatCompletion(
+                chatRequest = ChatRequest(
+                    requestMessage = MessageContent(
+                        content = summaryRequestContent,
+                        role = ChatRoleType.USER
+                    )
+                )
+            )
+            Log.d("whatisthis", "summarizedSummaryResult $summarizedSummaryResult")
+
+            if (summarizedSummaryResult.isFailure) return Result.success(false)
+
+            // 5. 새로운 요약 정보로 데이터 갱신
+            val summarizedSummary = summarizedSummaryResult.getOrThrow().responseMessage
+            if (summarizedSummary == null) return Result.success(false)
+
+            addOrUpdateChatSummary(summarizedSummary.content)
+
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.d("whatisthis", e.toString())
+            Result.failure(e)
         }
+    }
+
+
+    private fun buildRequestFormForSummary(summariesInJson: String): String =
+        """
+        "${summariesInJson.replace("\"", "\\\"")}"
+        위 내용들을 요약해주세요.
+        """.trimIndent()
 
     private fun buildRequestFormForSummary(summariesInJson: String, userContent: String): String =
         """
-        "${summariesInJson.replace("\"", "\\\"")}"
-        "${userContent.replace("\"", "\\\"")}"
-        위 내용들을 요약해서
-        $chatSummaryInJsonForm
-        이러한 형태의 json 문자열로 작성해줘
+        "$summariesInJson"
+        "$userContent"
+        위 내용들을 분석하고 요약하여 아래와 같은 JSON 형식으로 구조화해 주세요. 각 주요 항목에 대한 설명과 관련된 세부 정보를 명확히 나누어 작성해 주시기 바랍니다.
+        "$chatSummaryInJsonForm"
         """.trimIndent()
 
     private suspend fun addOrUpdateChatSummary(jsonContent: String) {
@@ -90,26 +107,27 @@ class UpdateChatSummaryUseCase @Inject constructor(
         }
 
     private val chatSummaryInJsonForm = """
+{
+    "id": 1,
+    "title": "",
+    "subTitle": "",
+    "content": [
         {
-          "id": 1,
-          "title": "",
-          "subTitle": "",
-          "content": [
-            {
-              "head": "",
-              "body": "",
-              "informationForm": {
-                "head": "",
-                "body": "",
-                "informationForm": {
-                  "head": "",
-                  "body": "",
-                  "informationForm": null
-                }
-              }
-            }
-          ]
-        }
+            "head": "",
+            "body": "",
+            "childInformations": [
+                {
+                    "head": "",
+                    "body": "",
+                    "childInformations": []
+                },
+                ...
+            ]
+        },
+        ...
+    ]
+},
+...
     """.trimIndent()
 
     private fun extractJsonString(input: String): String? {

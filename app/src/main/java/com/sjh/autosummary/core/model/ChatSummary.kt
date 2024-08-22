@@ -14,13 +14,5 @@ data class ChatSummary(
 data class InformationForm(
     val head: String,
     val body: String,
-    val informationForm: InformationForm? = null,
+    val childInformations: List<InformationForm> = emptyList(),
 )
-
-val initChatSummary =
-    ChatSummary(
-        id = 0L,
-        title = "",
-        subTitle = null,
-        content = emptyList(),
-    )

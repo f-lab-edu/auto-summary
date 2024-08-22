@@ -7,8 +7,6 @@ import com.sjh.autosummary.core.data.repository.SummaryRepository
 import com.sjh.autosummary.core.model.ChatRoleType
 import com.sjh.autosummary.core.model.ChatSummary
 import com.sjh.autosummary.core.model.MessageContent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -75,7 +73,6 @@ class UpdateChatSummaryUseCase @Inject constructor(
             Result.failure(e)
         }
     }
-
 
     private fun buildRequestFormForSummary(summariesInJson: String): String =
         """

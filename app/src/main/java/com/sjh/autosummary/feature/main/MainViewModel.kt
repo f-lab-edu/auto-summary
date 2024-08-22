@@ -167,7 +167,6 @@ class MainViewModel @Inject constructor(
                         null
                     }
 
-
                 val gptResponse = if (chatResponseResult != null) {
                     val gptMessage = chatResponseResult.responseMessage
 

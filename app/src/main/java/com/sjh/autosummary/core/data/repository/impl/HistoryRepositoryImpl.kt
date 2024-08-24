@@ -64,7 +64,6 @@ class HistoryRepositoryImpl @Inject constructor(
     override suspend fun deleteChatHistory(chatHistory: ChatHistory): Result<Unit> =
         localHistoryDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
 
-
     override suspend fun deleteAllChatHistories() {
         localHistoryDataSource.deleteAllChatHistories()
     }
@@ -90,13 +89,9 @@ class HistoryRepositoryImpl @Inject constructor(
     private suspend fun addNewChatHistory(
         chatHistoryEntity: ChatHistoryEntity,
         messageContentEntities: List<MessageContentEntity>
-    ): Long? =
-        localHistoryDataSource
-            .insertChatHistoryWithMessages(
-                chatHistoryEntity = chatHistoryEntity,
-                messageContentEntities = messageContentEntities
-            )
-            .getOrNull()
+    ): Long? = localHistoryDataSource
+        .insertChatHistoryWithMessages(chatHistoryEntity, messageContentEntities)
+        .getOrNull()
 }
 
 private fun ChatHistory.toChatHistoryEntity() =

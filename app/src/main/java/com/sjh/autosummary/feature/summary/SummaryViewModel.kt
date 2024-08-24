@@ -60,7 +60,6 @@ class SummaryViewModel @Inject constructor(
         }
     }
 
-
     private fun deleteChatSummary(chatSummary: ChatSummary): Job = viewModelScope.launch {
         container.orbit {
             val currentUiState =
@@ -80,13 +79,11 @@ class SummaryViewModel @Inject constructor(
         }
     }
 
-
-    private fun moveToChatSummaryDetailScreen(chatSummary: ChatSummary): Job =
-        viewModelScope.launch {
-            container.orbit {
-                postSideEffect(
-                    SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen(chatSummary)
-                )
-            }
+    private fun moveToChatSummaryDetailScreen(chatSummary: ChatSummary): Job = viewModelScope.launch {
+        container.orbit {
+            postSideEffect(
+                SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen(chatSummary)
+            )
         }
+    }
 }

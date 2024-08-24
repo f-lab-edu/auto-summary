@@ -58,7 +58,6 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-
     private fun fetchAllChatHistroy(): Job = viewModelScope.launch {
         container.orbit {
             if (state.chatHistoryState is LoadState.Succeeded) return@orbit

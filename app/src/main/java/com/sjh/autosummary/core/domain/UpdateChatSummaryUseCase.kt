@@ -22,17 +22,18 @@ class UpdateChatSummaryUseCase @Inject constructor(
             // (요약 불가 처리)
             if (retrieveResult.isFailure) return Result.success(false)
 
-            val summaries = retrieveResult.getOrThrow()
-            val summariesInJson = convertChatSummaryToJson(summaries.firstOrNull())
+            val firstSummary = retrieveResult
+                .getOrThrow()
+                .firstOrNull()
+
+            val summariesInJson = convertChatSummaryToJson(firstSummary)
             Log.d("whatisthis", "summariesInJson $summariesInJson")
 
             // 2. 답변 내용 요약
-            val summarizedResponseResult = chatRepository.createChatCompletion(
-                chatRequest = ChatRequest(
-                    requestMessage = messageContent.copy(
-                        content = buildRequestFormForSummary(
-                            messageContent.content
-                        )
+            val summarizedResponseResult = chatRepository.requestChatResponse(
+                ChatRequest(
+                    messageContent.copy(
+                        content = buildResponseSummarizeRequest(messageContent.content)
                     )
                 )
             )
@@ -45,24 +46,22 @@ class UpdateChatSummaryUseCase @Inject constructor(
 
             // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성
             val summaryRequestContent =
-                buildRequestFormForSummary(summariesInJson, summarizedResponse.content)
+                buildChatSummarySummarizeRequest(summariesInJson, summarizedResponse.content)
             Log.d("whatisthis", "summaryRequestContent $summaryRequestContent")
 
             // 4. (모든 요약 + 요약된 답변) 대한 요약 결과
-            val summarizedSummaryResult = chatRepository.createChatCompletion(
-                chatRequest = ChatRequest(
-                    requestMessage = MessageContent(
-                        content = summaryRequestContent,
-                        role = ChatRoleType.USER
-                    )
-                )
+            val summarizedSummaryResult = chatRepository.requestChatResponse(
+                ChatRequest(MessageContent(summaryRequestContent, ChatRoleType.USER))
             )
             Log.d("whatisthis", "summarizedSummaryResult $summarizedSummaryResult")
 
             if (summarizedSummaryResult.isFailure) return Result.success(false)
 
             // 5. 새로운 요약 정보로 데이터 갱신
-            val summarizedSummary = summarizedSummaryResult.getOrThrow().responseMessage
+            val summarizedSummary = summarizedSummaryResult
+                .getOrThrow()
+                .responseMessage
+
             if (summarizedSummary == null) return Result.success(false)
 
             addOrUpdateChatSummary(summarizedSummary.content)
@@ -74,13 +73,16 @@ class UpdateChatSummaryUseCase @Inject constructor(
         }
     }
 
-    private fun buildRequestFormForSummary(summariesInJson: String): String =
+    private fun buildResponseSummarizeRequest(summariesInJson: String): String =
         """
         "${summariesInJson.replace("\"", "\\\"")}"
         위 내용들을 요약해주세요.
         """.trimIndent()
 
-    private fun buildRequestFormForSummary(summariesInJson: String, userContent: String): String =
+    private fun buildChatSummarySummarizeRequest(
+        summariesInJson: String,
+        userContent: String
+    ): String =
         """
         "$summariesInJson"
         "$userContent"
@@ -125,7 +127,7 @@ class UpdateChatSummaryUseCase @Inject constructor(
     ]
 },
 ...
-    """.trimIndent()
+    """
 
     private fun extractJsonString(input: String): String? {
         // JSON 문자열이 시작하는 인덱스 찾기
@@ -136,7 +138,8 @@ class UpdateChatSummaryUseCase @Inject constructor(
         return if (jsonStartIndex != -1 && jsonEndIndex != -1) {
             input.substring(jsonStartIndex, jsonEndIndex)
         } else {
-            null // JSON 문자열이 없을 경우 null 반환
+            // JSON 문자열이 없을 경우 null 반환
+            null
         }
     }
 

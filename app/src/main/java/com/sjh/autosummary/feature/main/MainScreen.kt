@@ -64,7 +64,7 @@ fun MainRoute(
 
     viewModel.collectSideEffect {
         when (it) {
-            is MainScreenSideEffect.ShowToast -> {}
+            is MainScreenSideEffect.ShowToast -> Unit
         }
     }
 
@@ -78,8 +78,8 @@ fun MainRoute(
             onHistoryClick()
             viewModel.handleEvent(MainScreenEvent.OnHistoryClick)
         },
-        onSearchClick = { content ->
-            viewModel.handleEvent(MainScreenEvent.OnSearchClick(content))
+        onSearchClick = { message ->
+            viewModel.handleEvent(MainScreenEvent.OnSearchClick(message))
         },
         modifier = modifier,
     )
@@ -164,18 +164,9 @@ fun MainContent(
                 is LoadState.Succeeded ->
                     itemsIndexed(chatHistoryState.data.messageList) { index, message ->
                         when (message.role) {
-                            ChatRoleType.USER -> {
-                                UserMessageBubble(
-                                    message = message.content,
-                                )
-                            }
-
-                            ChatRoleType.GPT -> {
-                                AiMessageBubble(message = message.content)
-                            }
-
-                            ChatRoleType.SYSTEM -> {
-                            }
+                            ChatRoleType.USER -> UserMessageBubble(message = message.content)
+                            ChatRoleType.GPT -> AiMessageBubble(message = message.content)
+                            ChatRoleType.SYSTEM -> Unit
                         }
                     }
 
@@ -215,11 +206,14 @@ fun MainContent(
                 modifier = Modifier
                     .size(40.dp)
                     .clickable {
-                        if (chatHistoryState is LoadState.InProgress || gptResponseState is LoadState.InProgress) return@clickable
+                        if (chatHistoryState is LoadState.InProgress) return@clickable
+                        when (gptResponseState) {
+                            is LoadState.Succeeded -> {
+                                onSearchClick(searchWord)
+                                searchWord = ""
+                            }
 
-                        if (gptResponseState is LoadState.Succeeded) {
-                            onSearchClick(searchWord)
-                            searchWord = ""
+                            else -> Unit
                         }
                     },
                 imageVector = Icons.Rounded.Send,

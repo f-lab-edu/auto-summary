@@ -14,6 +14,7 @@ import com.sjh.autosummary.feature.main.contract.event.MainScreenEvent
 import com.sjh.autosummary.feature.main.contract.sideeffect.MainScreenSideEffect
 import com.sjh.autosummary.feature.main.contract.state.MainScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
@@ -46,7 +47,7 @@ class MainViewModel @Inject constructor(
             }
 
             is MainScreenEvent.OnSearchClick -> {
-                searchContent(event.content)
+                requestChatResponse(event.message)
             }
 
             MainScreenEvent.OnHistoryClick -> {
@@ -55,143 +56,129 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun saveChatHistory() {
-        viewModelScope.launch {
-            container.orbit {
-                val currentUiState =
-                    (state.chatHistoryState as? LoadState.Succeeded) ?: return@orbit
+    private fun saveChatHistory(): Job = viewModelScope.launch {
+        container.orbit {
+            val currentUiState =
+                state.chatHistoryState as? LoadState.Succeeded ?: return@orbit
 
-                historyRepository.addOrUpdateChatHistory(
-                    chatHistory = currentUiState.data
+            historyRepository.addOrUpdateChatHistory(
+                chatHistory = currentUiState.data
+            )
+        }
+    }
+
+    private fun createChatHistory(): Job = viewModelScope.launch {
+        container.orbit {
+            if (state.chatHistoryState is LoadState.Succeeded) return@orbit
+
+            val newChatHistory = getInitialChatHistory()
+
+            val chatHistoryId =
+                historyRepository.addOrUpdateChatHistory(newChatHistory) ?: return@orbit
+
+            reduce {
+                state.copy(
+                    chatHistoryState = LoadState.Succeeded(
+                        newChatHistory.copy(id = chatHistoryId)
+                    )
                 )
             }
         }
     }
 
-    private fun createChatHistory() {
-        viewModelScope.launch {
-            container.orbit {
-                if (state.chatHistoryState is LoadState.Succeeded) return@orbit
+    private fun loadChatHistory(chatHistoryId: Long): Job = viewModelScope.launch {
+        container.orbit {
+            var chatHistory = ChatHistory(
+                id = chatHistoryId,
+                date = formatDate(LocalDate.now()),
+                messageList = emptyList(),
+            )
 
-                val newChatHistory = getInitialChatHistory()
+            val chatHistoryResult = historyRepository
+                .findChatHistory(chatHistoryId)
+                .getOrNull()
 
-                val chatHistoryId = historyRepository.addOrUpdateChatHistory(
-                    chatHistory = newChatHistory
-                )
-
-                chatHistoryId?.let { id ->
-                    reduce {
-                        state.copy(
-                            chatHistoryState = LoadState.Succeeded(
-                                data = newChatHistory.copy(
-                                    id = id
-                                )
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun loadChatHistory(chatHistoryId: Long) {
-        viewModelScope.launch {
-            container.orbit {
-                var chatHistory = ChatHistory(
+            if (chatHistoryResult != null) {
+                chatHistory = ChatHistory(
                     id = chatHistoryId,
-                    date = getCurrentDate(),
-                    messageList = emptyList(),
+                    date = chatHistoryResult.date,
+                    messageList = chatHistoryResult.messageList,
+                    name = chatHistoryResult.name
                 )
+            } else {
+                TODO("데이터 불러오기 실패 토스트 띄우기")
+            }
 
-                val chatHistoryResult = historyRepository.findChatHistory(
-                    chatHistoryId = chatHistoryId
-                ).getOrNull()
-
-                if (chatHistoryResult != null) {
-                    chatHistory = ChatHistory(
-                        id = chatHistoryId,
-                        date = chatHistoryResult.date,
-                        messageList = chatHistoryResult.messageList,
-                        name = chatHistoryResult.name
-                    )
-                } else {
-                    /* Todo : 데이터 불러오기 실패 토스트 띄우기 */
-                }
-
-                reduce {
-                    state.copy(
-                        chatHistoryState = LoadState.Succeeded(
-                            data = chatHistory
-                        )
-                    )
-                }
+            reduce {
+                state.copy(
+                    chatHistoryState = LoadState.Succeeded(chatHistory)
+                )
             }
         }
     }
 
-    private fun searchContent(content: String) {
-        viewModelScope.launch {
-            container.orbit {
-                val currentChatHistoryUiState =
-                    (state.chatHistoryState as? LoadState.Succeeded) ?: return@orbit
+    private fun requestChatResponse(message: String): Job = viewModelScope.launch {
+        container.orbit {
+            val currentChatHistoryUiState =
+                state.chatHistoryState as? LoadState.Succeeded ?: return@orbit
 
-                if (state.gptResponseState !is LoadState.Succeeded) return@orbit
+            if (state.gptResponseState !is LoadState.Succeeded) return@orbit
 
-                val currentChatHistory = currentChatHistoryUiState.data
-                val currentMessageList = currentChatHistory.messageList.toMutableList()
+            val currentChatHistory = currentChatHistoryUiState.data
+            val chatMessageList = currentChatHistory.messageList.toMutableList()
 
-                val myMessage = MessageContent(
-                    content = content,
-                    role = ChatRoleType.USER
+            val myMessage = MessageContent(
+                content = message,
+                role = ChatRoleType.USER
+            )
+
+            reduce {
+                chatMessageList += myMessage
+
+                state.copy(
+                    gptResponseState = LoadState.InProgress,
+                    chatHistoryState = LoadState.Succeeded(currentChatHistory.copy(messageList = chatMessageList.toList()))
                 )
-                currentMessageList.add(myMessage)
+            }
 
+            val chatResponseResult = chatRepository.requestChatResponse(ChatRequest(myMessage))
+
+            if (chatResponseResult.isFailure) {
                 reduce {
-                    state.copy(
-                        gptResponseState = LoadState.InProgress,
-                        chatHistoryState = LoadState.Succeeded(
-                            data = currentChatHistory.copy(messageList = currentMessageList.toList())
-                        )
+                    chatMessageList += getErrorMessageContent(
+                        chatResponseResult.exceptionOrNull().toString()
                     )
-                }
 
-                val chatResponseResult = chatRepository.createChatCompletion(
-                    chatRequest = ChatRequest(
-                        requestMessage = myMessage
-                    )
-                )
-                    .getOrElse { error ->
-                        currentMessageList.add(
-                            getErrorMessageContent(errorMessage = error.message.toString())
-                        )
-                        null
-                    }
-
-                val gptResponse = if (chatResponseResult != null) {
-                    val gptMessage = chatResponseResult.responseMessage
-
-                    if (gptMessage != null) {
-                        currentMessageList.add(gptMessage)
-                        updateChatSummaryUseCase(gptMessage)
-                        true
-                    } else {
-                        currentMessageList.add(getErrorMessageContent(errorMessage = "답변 결과 없음"))
-                        false
-                    }
-                } else {
-                    false
-                }
-
-                reduce {
                     state.copy(
-                        gptResponseState = LoadState.Succeeded(gptResponse),
+                        gptResponseState = LoadState.Succeeded(false),
                         chatHistoryState = LoadState.Succeeded(
-                            data = currentChatHistory.copy(
-                                messageList = currentMessageList.toList()
+                            currentChatHistory.copy(
+                                messageList = chatMessageList.toList()
                             )
                         )
                     )
                 }
+                return@orbit
+            }
+
+            val gptResponseResult = chatResponseResult.getOrNull()
+
+            val gptMessage =
+                gptResponseResult?.responseMessage ?: getErrorMessageContent("답변 결과 없음")
+
+            if (gptResponseResult != null) updateChatSummaryUseCase(gptMessage)
+
+            reduce {
+                val gptResponseState = gptResponseResult != null
+                chatMessageList += gptMessage
+                state.copy(
+                    gptResponseState = LoadState.Succeeded(gptResponseState),
+                    chatHistoryState = LoadState.Succeeded(
+                        currentChatHistory.copy(
+                            messageList = chatMessageList.toList()
+                        )
+                    )
+                )
             }
         }
     }
@@ -202,13 +189,12 @@ class MainViewModel @Inject constructor(
     )
 
     private fun getInitialChatHistory() = ChatHistory(
-        date = getCurrentDate(),
+        date = formatDate(LocalDate.now()),
         messageList = emptyList()
     )
 
-    private fun getCurrentDate(): String {
-        val currentDate = LocalDate.now()
+    private fun formatDate(date: LocalDate): String {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        return currentDate.format(formatter)
+        return date.format(formatter)
     }
 }

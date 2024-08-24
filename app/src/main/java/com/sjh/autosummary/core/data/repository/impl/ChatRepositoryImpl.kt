@@ -18,28 +18,25 @@ class ChatRepositoryImpl @Inject constructor(
     private val networkDataSource: NetworkDataSource,
 ) : ChatRepository {
 
-    override suspend fun createChatCompletion(chatRequest: ChatRequest): Result<ChatResponse> =
+    override suspend fun requestChatResponse(chatRequest: ChatRequest): Result<ChatResponse> =
         withContext(Dispatchers.IO) {
             try {
                 networkDataSource
-                    .createChatCompletion(
-                        chatRequest = chatRequest.toGptChatRequest(),
-                    )
-                    .mapCatching { entity ->
-                        entity.toChatResponse()
-                    }
+                    .createChatCompletion(chatRequest.toGptChatRequest())
+                    .mapCatching(GptChatResponse::toChatResponse)
             } catch (e: Exception) {
                 Result.failure(e)
             }
         }
 }
 
-private fun GptChatResponse.toChatResponse(): ChatResponse {
-    val firstChoice = choices.firstOrNull()
-    return ChatResponse(
-        responseMessage = firstChoice?.message?.toMessageContent(),
+private fun GptChatResponse.toChatResponse(): ChatResponse =
+    ChatResponse(
+        responseMessage = choices
+            .first()
+            .message
+            .toMessageContent()
     )
-}
 
 private fun ChatRequest.toGptChatRequest() =
     GptChatRequest(
@@ -52,7 +49,7 @@ private fun ChatRequest.toGptChatRequest() =
     )
 
 private fun GptMessageContent.toMessageContent(): MessageContent {
-    val roleType: ChatRoleType = ChatRoleType.getFromRole(role = this.role) ?: ChatRoleType.SYSTEM
+    val roleType: ChatRoleType = ChatRoleType.getFromRole(this.role) ?: ChatRoleType.SYSTEM
     return MessageContent(
         content = content,
         role = roleType,

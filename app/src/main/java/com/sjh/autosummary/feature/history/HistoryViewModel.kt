@@ -9,6 +9,7 @@ import com.sjh.autosummary.feature.history.contract.event.HistoryScreenEvent
 import com.sjh.autosummary.feature.history.contract.sideeffect.HistoryScreenSideEffect
 import com.sjh.autosummary.feature.history.contract.state.HistoryScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
@@ -35,44 +36,45 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    private fun deleteChatHistory(chatHistory: ChatHistory) {
-        viewModelScope.launch {
-            container.orbit {
-                val currentUiState =
-                    (state.chatHistoryState as? LoadState.Succeeded) ?: return@orbit
+    private fun deleteChatHistory(chatHistory: ChatHistory): Job = viewModelScope.launch {
+        container.orbit {
+            val currentUiState = state.chatHistoryState as? LoadState.Succeeded ?: return@orbit
 
-                val currentChatHistories = currentUiState.data.toMutableList()
+            val deleteResult = historyRepository
+                .deleteChatHistory(chatHistory)
+                .getOrNull()
 
-                currentChatHistories.remove(chatHistory)
+            if (deleteResult == null) return@orbit
 
-                historyRepository.deleteChatHistory(chatHistory)
+            val currentChatHistories = currentUiState.data.toMutableList()
 
-                reduce {
-                    state.copy(
-                        chatHistoryState = LoadState.Succeeded(
-                            data = currentChatHistories.toList()
-                        )
-                    )
-                }
+            currentChatHistories.remove(chatHistory)
+
+            reduce {
+                state.copy(
+                    chatHistoryState = LoadState.Succeeded(currentChatHistories.toList())
+                )
             }
         }
     }
 
-    private fun fetchAllChatHistroy() {
-        viewModelScope.launch {
-            container.orbit {
-                if (state.chatHistoryState is LoadState.Succeeded) return@orbit
 
-                val result = historyRepository.retrieveAllChatHistories()
+    private fun fetchAllChatHistroy(): Job = viewModelScope.launch {
+        container.orbit {
+            if (state.chatHistoryState is LoadState.Succeeded) return@orbit
 
-                result.fold(onSuccess = { foundChatHistories ->
+            val retrieveResult = historyRepository.retrieveAllChatHistories()
+
+            retrieveResult.fold(
+                onSuccess = { foundChatHistories ->
                     reduce {
-                        state.copy(chatHistoryState = LoadState.Succeeded(data = foundChatHistories))
+                        state.copy(chatHistoryState = LoadState.Succeeded(foundChatHistories))
                     }
-                }, onFailure = {
-                    /* Todo : 데이터 불러오기 실패 토스트 띄우기 */
-                })
-            }
+                },
+                onFailure = {
+                    TODO("데이터 불러오기 실패 토스트 띄우기")
+                }
+            )
         }
     }
 }

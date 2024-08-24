@@ -60,7 +60,7 @@ fun HistoryRoute(
 
     viewModel.collectSideEffect {
         when (it) {
-            is HistoryScreenSideEffect.ShowToast -> {}
+            is HistoryScreenSideEffect.ShowToast -> Unit
         }
     }
 
@@ -165,7 +165,7 @@ fun HistroyContent(
                     }
 
                 is LoadState.Failed -> {
-                    /* Todo : 로드 실패 토스트 */
+                    TODO("로드 실패 토스트 ")
                 }
             }
         }

@@ -65,7 +65,7 @@ fun SummaryRoute(
 
     viewModel.collectSideEffect {
         when (it) {
-            is SummaryScreenSideEffect.ShowToast -> {}
+            is SummaryScreenSideEffect.ShowToast -> Unit
             is SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen -> {
                 summaryInformationDetail = it.chatSummary
             }

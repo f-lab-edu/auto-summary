@@ -61,9 +61,9 @@ class HistoryRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun deleteChatHistory(chatHistory: ChatHistory) {
+    override suspend fun deleteChatHistory(chatHistory: ChatHistory): Result<Unit> =
         localHistoryDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
-    }
+
 
     override suspend fun deleteAllChatHistories() {
         localHistoryDataSource.deleteAllChatHistories()

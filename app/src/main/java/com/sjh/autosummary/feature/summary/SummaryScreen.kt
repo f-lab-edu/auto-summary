@@ -1,7 +1,7 @@
 package com.sjh.autosummary.feature.summary
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,33 +32,64 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.sjh.autosummary.R
+import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatSummary
 import com.sjh.autosummary.core.model.InformationForm
-import com.sjh.autosummary.core.model.initChatSummary
+import com.sjh.autosummary.feature.summary.contract.event.SummaryScreenEvent
+import com.sjh.autosummary.feature.summary.contract.sideeffect.SummaryScreenSideEffect
+import com.sjh.autosummary.feature.summary.contract.state.SummaryScreenState
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
 @Composable
 fun SummaryRoute(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: SummaryViewModel = hiltViewModel(),
 ) {
-    var summaryInformationDetail by remember { mutableStateOf(initChatSummary) }
+    val state by viewModel.collectAsState()
 
-    SummaryScreen(onBackClick = onBackClick, onChatSummaryClick = { chatSummary ->
-        summaryInformationDetail = chatSummary
-    }, modifier = modifier)
+    LaunchedEffect(Unit) {
+        viewModel.handleEvent(SummaryScreenEvent.ShowAllChatSummary)
+    }
 
-    if (summaryInformationDetail != initChatSummary) {
+    var summaryInformationDetail: ChatSummary? by remember { mutableStateOf(null) }
+
+    viewModel.collectSideEffect {
+        when (it) {
+            is SummaryScreenSideEffect.ShowToast -> Unit
+            is SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen -> {
+                summaryInformationDetail = it.chatSummary
+            }
+        }
+    }
+
+    SummaryScreen(
+        state = state,
+        onBackClick = onBackClick,
+        onChatSummaryClick = { chatSummary ->
+            viewModel.handleEvent(SummaryScreenEvent.OnChatSummaryClick(chatSummary))
+        },
+        onChatSummaryLongClick = { chatSummary ->
+            viewModel.handleEvent(SummaryScreenEvent.OnChatSummaryLongClick(chatSummary))
+        },
+        modifier = modifier
+    )
+
+    if (summaryInformationDetail != null) {
         SummaryInformationDetail(
             onCloseClick = {
-                summaryInformationDetail = initChatSummary
+                summaryInformationDetail = null
             },
-            summary = summaryInformationDetail,
+            summary = summaryInformationDetail!!,
             modifier = modifier,
         )
     }
@@ -64,64 +97,12 @@ fun SummaryRoute(
 
 @Composable
 fun SummaryScreen(
+    state: SummaryScreenState,
     onBackClick: () -> Unit,
     onChatSummaryClick: (ChatSummary) -> Unit,
+    onChatSummaryLongClick: (ChatSummary) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val chatSummaryList: List<ChatSummary> =
-        listOf(
-            ChatSummary(
-                id = 0L,
-                title = "제목 01",
-                subTitle = "부제목",
-                content = listOf(
-                    InformationForm(
-                        head = "소제목",
-                        body = "내용 내용 내용 내용",
-                        informationForm =
-                        InformationForm(
-                            head = "소소제목",
-                            body = "자세한 내용, 자세한 내용",
-                        ),
-                    ),
-                    InformationForm(
-                        head = "소제목",
-                        body = "내용 내용 내용 내용",
-                        informationForm =
-                        InformationForm(
-                            head = "소소제목",
-                            body = "자세한 내용, 자세한 내용",
-                        ),
-                    ),
-                ),
-            ),
-            ChatSummary(
-                id = 1L,
-                title = "제목 02",
-                subTitle = "부제목",
-                content = listOf(
-                    InformationForm(
-                        head = "소제목",
-                        body = "내용 내용 내용 내용",
-                        informationForm =
-                        InformationForm(
-                            head = "소소제목",
-                            body = "자세한 내용, 자세한 내용",
-                        ),
-                    ),
-                    InformationForm(
-                        head = "소제목",
-                        body = "내용 내용 내용 내용",
-                        informationForm =
-                        InformationForm(
-                            head = "소소제목",
-                            body = "자세한 내용, 자세한 내용",
-                        ),
-                    ),
-                ),
-            ),
-        )
-
     Scaffold(
         topBar = {
             SummaryTopBar(onBackClick = onBackClick)
@@ -133,8 +114,9 @@ fun SummaryScreen(
                 .fillMaxSize(),
         ) {
             SummaryContent(
+                chatSummaryState = state.chatSummaryState,
                 onChatSummaryClick = onChatSummaryClick,
-                chatSummaryList = chatSummaryList,
+                onChatSummaryLongClick = onChatSummaryLongClick,
                 modifier = modifier,
             )
         }
@@ -165,8 +147,9 @@ fun SummaryTopBar(
 
 @Composable
 fun SummaryContent(
+    chatSummaryState: LoadState<List<ChatSummary>>,
     onChatSummaryClick: (ChatSummary) -> Unit,
-    chatSummaryList: List<ChatSummary>,
+    onChatSummaryLongClick: (ChatSummary) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -179,12 +162,31 @@ fun SummaryContent(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
         ) {
-            itemsIndexed(chatSummaryList) { idx, summary ->
-                SummaryInformation(
-                    onChatSummaryClick = onChatSummaryClick,
-                    summary = summary,
-                    modifier = modifier,
-                )
+            when (chatSummaryState) {
+                LoadState.InProgress ->
+                    item {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        )
+                    }
+
+                is LoadState.Succeeded ->
+                    itemsIndexed(chatSummaryState.data) { idx, summary ->
+                        SummaryInformation(
+                            summary = summary,
+                            onChatSummaryClick = {
+                                onChatSummaryClick(summary)
+                            },
+                            onChatSummaryLongClick = {
+                                onChatSummaryLongClick(summary)
+                            },
+                            modifier = modifier,
+                        )
+                    }
+
+                is LoadState.Failed -> {}
             }
         }
     }
@@ -192,15 +194,25 @@ fun SummaryContent(
 
 @Composable
 fun SummaryInformation(
-    onChatSummaryClick: (ChatSummary) -> Unit,
     summary: ChatSummary,
+    onChatSummaryClick: () -> Unit,
+    onChatSummaryLongClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable { onChatSummaryClick(summary) },
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        onChatSummaryLongClick()
+                    },
+                    onTap = {
+                        onChatSummaryClick()
+                    }
+                )
+            },
     ) {
         Row(
             modifier = modifier
@@ -278,22 +290,27 @@ fun SummaryContentDetail(
     summary: ChatSummary,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.Top,
     ) {
         if (summary.subTitle != null) {
-            Text(text = summary.subTitle, fontSize = 13.sp)
+            item {
+                Text(text = summary.subTitle, fontSize = 13.sp)
+            }
         }
-        Spacer(modifier = modifier.height(height = 8.dp))
-        for (summaryContent in summary.content) {
+        item {
+            Spacer(modifier = modifier.height(height = 8.dp))
+        }
+        items(summary.content.size) { idx ->
             BasicInformationForm(
-                informationForm = summaryContent,
+                informationForm = summary.content[idx],
                 headFontSize = 24,
                 modifier = modifier,
             )
+            Spacer(modifier = modifier.height(height = 8.dp))
         }
     }
 }
@@ -304,20 +321,19 @@ fun BasicInformationForm(
     headFontSize: Int,
     modifier: Modifier = Modifier,
 ) {
-    val adjustedHeadFontSize = if (headFontSize >= 20) headFontSize else 20
+    val adjustedHeadFontSize = if (headFontSize >= 18) headFontSize else 18
 
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .padding(start = 6.dp, top = 4.dp),
+            .padding(start = 8.dp, top = 4.dp),
         verticalArrangement = Arrangement.Top,
     ) {
         Text(text = informationForm.head, modifier = modifier, fontSize = adjustedHeadFontSize.sp)
         Text(text = informationForm.body, modifier = modifier, fontSize = 14.sp)
-        if (informationForm.informationForm != null) {
+        for (information in informationForm.childInformations) {
             BasicInformationForm(
-                informationForm = informationForm.informationForm,
-                headFontSize - 2,
+                informationForm = information,
+                headFontSize = headFontSize - 2,
                 modifier = modifier,
             )
         }
@@ -329,7 +345,9 @@ fun BasicInformationForm(
 private fun SummaryScreenPreview() {
     AutoSummaryTheme {
         SummaryScreen(
+            state = SummaryScreenState(),
             onChatSummaryClick = { a -> },
+            onChatSummaryLongClick = { a -> },
             onBackClick = {},
         )
     }
@@ -345,24 +363,33 @@ private fun SummaryContentDetailPreview() {
                 id = 0L,
                 title = "제목 01",
                 subTitle = "부제목",
-                content =
-                listOf(
+                content = listOf(
                     InformationForm(
-                        head = "소제목",
+                        head = "소제목 1",
                         body = "내용 내용 내용 내용",
-                        informationForm =
-                        InformationForm(
-                            head = "소소제목",
-                            body = "자세한 내용, 자세한 내용",
+                        childInformations = listOf(
+                            InformationForm(
+                                head = "소소제목 1",
+                                body = "자세한 내용, 자세한 내용",
+                            ),
+                            InformationForm(
+                                head = "소소제목 2",
+                                body = "자세한 내용, 자세한 내용",
+                            )
                         ),
                     ),
                     InformationForm(
-                        head = "소제목",
+                        head = "소제목 2",
                         body = "내용 내용 내용 내용",
-                        informationForm =
-                        InformationForm(
-                            head = "소소제목",
-                            body = "자세한 내용, 자세한 내용",
+                        childInformations = listOf(
+                            InformationForm(
+                                head = "소소제목 1",
+                                body = "자세한 내용, 자세한 내용",
+                            ),
+                            InformationForm(
+                                head = "소소제목 2",
+                                body = "자세한 내용, 자세한 내용",
+                            )
                         ),
                     ),
                 ),

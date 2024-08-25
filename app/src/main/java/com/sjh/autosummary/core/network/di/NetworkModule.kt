@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -21,8 +22,10 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideCallFactory(): Call.Factory {
-        return OkHttpClient.Builder()
+    fun provideCallFactory(): Call.Factory =
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .build()
-    }
 }

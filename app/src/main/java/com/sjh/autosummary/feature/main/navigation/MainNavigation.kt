@@ -21,10 +21,10 @@ fun NavGraphBuilder.mainScreen(
     modifier: Modifier = Modifier,
 ) {
     composable(
-        route = "$MAIN_ROUTE/{$HISTORYDATA_KEY}",
+        route = "$MAIN_ROUTE/{$dataKey}",
         arguments = listOf(navArgument(dataKey) { type = NavType.LongType }),
     ) { backStackEntry ->
-        val chatHistoryId = backStackEntry.arguments?.getLong(dataKey)
+        val chatHistoryId = backStackEntry.arguments?.getLong(dataKey) ?: 0L
         MainRoute(
             onHistoryClick = onHistoryClick,
             chatHistoryId = chatHistoryId,

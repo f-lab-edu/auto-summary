@@ -1,6 +1,7 @@
 package com.sjh.autosummary.feature.main
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,30 +43,53 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sjh.autosummary.R
+import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
+import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.core.model.ChatRoleType
-import com.sjh.autosummary.core.model.MessageContent
+import com.sjh.autosummary.feature.main.contract.event.MainScreenEvent
+import com.sjh.autosummary.feature.main.contract.sideeffect.MainScreenSideEffect
+import com.sjh.autosummary.feature.main.contract.state.MainScreenState
+import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 
-// Todo : messageList를 인덱스나 날짜로 변경해서 MainViewModel에서 db를 조회하는 방식으로 변경
 @Composable
 fun MainRoute(
     onHistoryClick: () -> Unit,
-    chatHistoryId: Long?,
+    chatHistoryId: Long,
     modifier: Modifier = Modifier,
     viewModel: MainViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.collectAsState()
+
+    viewModel.collectSideEffect {
+        when (it) {
+            is MainScreenSideEffect.ShowToast -> Unit
+        }
+    }
+
+    LaunchedEffect(chatHistoryId) {
+        viewModel.handleEvent(MainScreenEvent.StartChat(chatHistoryId = chatHistoryId))
+    }
+
     MainScreen(
-        // Todo : state로 변경
-        messageList = listOf(),
-        onHistoryClick = onHistoryClick,
+        state = state,
+        onHistoryClick = {
+            onHistoryClick()
+            viewModel.handleEvent(MainScreenEvent.OnHistoryClick)
+        },
+        onSearchClick = { message ->
+            viewModel.handleEvent(MainScreenEvent.OnSearchClick(message))
+        },
         modifier = modifier,
     )
 }
 
 @Composable
 fun MainScreen(
+    state: MainScreenState,
     onHistoryClick: () -> Unit,
-    messageList: List<MessageContent>,
+    onSearchClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -76,7 +102,9 @@ fun MainScreen(
             modifier = Modifier.padding(padding),
         ) {
             MainContent(
-                messageList = messageList,
+                chatHistoryState = state.chatHistoryState,
+                gptResponseState = state.gptResponseState,
+                onSearchClick = onSearchClick,
             )
         }
     }
@@ -105,7 +133,11 @@ private fun MainTopBar(
 }
 
 @Composable
-fun MainContent(messageList: List<MessageContent>) {
+fun MainContent(
+    chatHistoryState: LoadState<ChatHistory>,
+    gptResponseState: LoadState<Boolean>,
+    onSearchClick: (String) -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Bottom,
@@ -117,21 +149,36 @@ fun MainContent(messageList: List<MessageContent>) {
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            reverseLayout = true,
+            verticalArrangement = Arrangement.Bottom,
         ) {
-            itemsIndexed(messageList) { index, message ->
-                when (message.role) {
-                    ChatRoleType.USER -> {
-                        UserMessageBubble(
-                            message = message.content,
+            when (chatHistoryState) {
+                LoadState.InProgress ->
+                    item {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         )
                     }
 
-                    ChatRoleType.GPT -> {
-                        AiMessageBubble(message = message.content)
+                is LoadState.Succeeded ->
+                    itemsIndexed(chatHistoryState.data.messageList) { index, message ->
+                        when (message.role) {
+                            ChatRoleType.USER -> UserMessageBubble(message = message.content)
+                            ChatRoleType.GPT -> AiMessageBubble(message = message.content)
+                            ChatRoleType.SYSTEM -> Unit
+                        }
                     }
 
-                    ChatRoleType.SYSTEM -> {}
+                is LoadState.Failed -> {}
+            }
+
+            if (gptResponseState is LoadState.InProgress) {
+                item {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    )
                 }
             }
         }
@@ -156,7 +203,19 @@ fun MainContent(messageList: List<MessageContent>) {
             Spacer(modifier = Modifier.width(8.dp))
 
             Icon(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable {
+                        if (chatHistoryState is LoadState.InProgress) return@clickable
+                        when (gptResponseState) {
+                            is LoadState.Succeeded -> {
+                                onSearchClick(searchWord)
+                                searchWord = ""
+                            }
+
+                            else -> Unit
+                        }
+                    },
                 imageVector = Icons.Rounded.Send,
                 contentDescription = "Search",
                 tint = MaterialTheme.colorScheme.primary,
@@ -206,8 +265,9 @@ fun AiMessageBubble(message: String) {
 private fun MainScreenPreview() {
     AutoSummaryTheme {
         MainScreen(
+            state = MainScreenState(),
             onHistoryClick = {},
-            messageList = listOf(),
+            onSearchClick = {},
         )
     }
 }

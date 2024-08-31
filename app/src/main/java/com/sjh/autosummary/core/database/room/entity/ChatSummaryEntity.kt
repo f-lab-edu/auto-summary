@@ -5,7 +5,9 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.sjh.autosummary.core.database.room.converter.Converter
 import com.sjh.autosummary.core.model.InformationForm
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(tableName = "chat_summary")
 data class ChatSummaryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

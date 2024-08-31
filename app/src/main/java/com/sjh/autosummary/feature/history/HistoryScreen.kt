@@ -1,5 +1,6 @@
 package com.sjh.autosummary.feature.history
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,14 +55,17 @@ fun HistoryRoute(
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.handleEvent(HistoryScreenEvent.ShowAllChatHistory)
     }
 
-    viewModel.collectSideEffect {
-        when (it) {
-            is HistoryScreenSideEffect.ShowToast -> Unit
+    viewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is HistoryScreenSideEffect.ShowToast -> {
+                Toast.makeText(context, sideEffect.message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

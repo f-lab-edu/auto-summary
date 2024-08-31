@@ -14,7 +14,7 @@ class LocalSummaryDataSourceImpl @Inject constructor(
     override suspend fun insertChatSummary(chatSummary: ChatSummaryEntity): Result<Long> =
         withContext(Dispatchers.IO) {
             try {
-                val chatSummaryId = chatSummaryDao.insertChatSummary(chatSummary = chatSummary)
+                val chatSummaryId = chatSummaryDao.insertChatSummary(chatSummary)
 
                 Result.success(chatSummaryId)
             } catch (e: Exception) {
@@ -22,11 +22,16 @@ class LocalSummaryDataSourceImpl @Inject constructor(
             }
         }
 
-    override suspend fun deleteChatSummary(chatSummary: ChatSummaryEntity) {
+    override suspend fun deleteChatSummary(chatSummary: ChatSummaryEntity): Result<Unit> =
         withContext(Dispatchers.IO) {
-            chatSummaryDao.deleteChatSummary(chatSummary)
+            try {
+                val deleteResult = chatSummaryDao.deleteChatSummary(chatSummary)
+
+                Result.success(deleteResult)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
         }
-    }
 
     override suspend fun getChatSummaryById(chatSummaryId: Long): Result<ChatSummaryEntity?> =
         withContext(Dispatchers.IO) {

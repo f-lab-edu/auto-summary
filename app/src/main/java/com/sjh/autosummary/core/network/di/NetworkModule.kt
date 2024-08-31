@@ -15,13 +15,6 @@ import javax.inject.Singleton
 class NetworkModule {
     @Provides
     @Singleton
-    fun provideNetworkJson(): Json =
-        Json {
-            ignoreUnknownKeys = true
-        }
-
-    @Provides
-    @Singleton
     fun provideCallFactory(): Call.Factory =
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)

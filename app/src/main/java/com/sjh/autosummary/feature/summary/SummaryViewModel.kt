@@ -29,13 +29,9 @@ class SummaryViewModel @Inject constructor(
 
     fun handleEvent(event: SummaryScreenEvent) {
         when (event) {
-            is SummaryScreenEvent.OnChatSummaryLongClick -> {
-                deleteChatSummary(event.chatSummary)
-            }
+            is SummaryScreenEvent.OnChatSummaryLongClick -> deleteChatSummary(event.chatSummary)
 
-            is SummaryScreenEvent.OnChatSummaryClick -> {
-                moveToChatSummaryDetailScreen(event.chatSummary)
-            }
+            is SummaryScreenEvent.OnChatSummaryClick -> moveToChatSummaryDetailScreen(event.chatSummary)
 
             SummaryScreenEvent.ShowAllChatSummary -> loadChatSummaries()
         }
@@ -43,17 +39,16 @@ class SummaryViewModel @Inject constructor(
 
     private fun loadChatSummaries(): Job = viewModelScope.launch {
         container.orbit {
-            val retrieveResult = summaryRepository.retrieveAllChatSummaries().getOrNull()
+            val retrieveResult = summaryRepository
+                .retrieveAllChatSummaries()
+                .getOrNull()
+
+            if (retrieveResult == null) postSideEffect(SummaryScreenSideEffect.ShowToast("데이터 불러오기 실패"))
 
             reduce {
                 state.copy(
                     chatSummaryState = LoadState.Succeeded(
-                        if (retrieveResult != null) {
-                            retrieveResult
-                        } else {
-                            TODO("실패 토스트 sideEffect")
-                            emptyList<ChatSummary>()
-                        }
+                        retrieveResult ?: emptyList<ChatSummary>()
                     )
                 )
             }
@@ -65,25 +60,30 @@ class SummaryViewModel @Inject constructor(
             val currentUiState =
                 state.chatSummaryState as? LoadState.Succeeded ?: return@orbit
 
-            val currentChatSummaries = currentUiState.data.toMutableList()
+            val deleteResult = summaryRepository
+                .deleteChatSummary(chatSummary)
+                .getOrNull()
 
-            currentChatSummaries.remove(chatSummary)
+            if (deleteResult == null) postSideEffect(SummaryScreenSideEffect.ShowToast("데이터 삭제 실패"))
 
-            summaryRepository.deleteChatSummary(chatSummary)
+            val chatSummaryList = currentUiState.data.toMutableList()
+
+            chatSummaryList.remove(chatSummary)
 
             reduce {
                 state.copy(
-                    chatSummaryState = LoadState.Succeeded(currentChatSummaries.toList())
+                    chatSummaryState = LoadState.Succeeded(chatSummaryList.toList())
                 )
             }
         }
     }
 
-    private fun moveToChatSummaryDetailScreen(chatSummary: ChatSummary): Job = viewModelScope.launch {
-        container.orbit {
-            postSideEffect(
-                SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen(chatSummary)
-            )
+    private fun moveToChatSummaryDetailScreen(chatSummary: ChatSummary): Job =
+        viewModelScope.launch {
+            container.orbit {
+                postSideEffect(
+                    SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen(chatSummary)
+                )
+            }
         }
-    }
 }

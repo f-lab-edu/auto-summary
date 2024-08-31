@@ -71,7 +71,7 @@ class HistoryViewModel @Inject constructor(
                     }
                 },
                 onFailure = {
-                    TODO("데이터 불러오기 실패 토스트 띄우기")
+                    postSideEffect(HistoryScreenSideEffect.ShowToast("데이터 불러오기 실패"))
                 }
             )
         }

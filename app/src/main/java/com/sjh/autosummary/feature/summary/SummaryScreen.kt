@@ -1,5 +1,6 @@
 package com.sjh.autosummary.feature.summary
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,6 +58,7 @@ fun SummaryRoute(
     viewModel: SummaryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.handleEvent(SummaryScreenEvent.ShowAllChatSummary)
@@ -63,11 +66,18 @@ fun SummaryRoute(
 
     var summaryInformationDetail: ChatSummary? by remember { mutableStateOf(null) }
 
-    viewModel.collectSideEffect {
-        when (it) {
-            is SummaryScreenSideEffect.ShowToast -> Unit
+    viewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is SummaryScreenSideEffect.ShowToast -> Toast
+                .makeText(
+                    context,
+                    sideEffect.message,
+                    Toast.LENGTH_SHORT
+                )
+                .show()
+
             is SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen -> {
-                summaryInformationDetail = it.chatSummary
+                summaryInformationDetail = sideEffect.chatSummary
             }
         }
     }
@@ -246,7 +256,10 @@ fun SummaryInformationDetail(
 ) {
     Scaffold(
         topBar = {
-            SummaryDetailTopBar(onCloseClick = onCloseClick, summaryTitle = summary.title)
+            SummaryDetailTopBar(
+                onCloseClick = onCloseClick,
+                summaryTitle = summary.title
+            )
         },
     ) { padding ->
         Box(

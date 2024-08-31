@@ -1,5 +1,6 @@
 package com.sjh.autosummary.core.data.repository.impl
 
+import android.util.Log
 import com.sjh.autosummary.core.data.repository.HistoryRepository
 import com.sjh.autosummary.core.database.LocalHistoryDataSource
 import com.sjh.autosummary.core.database.model.ChatHistoryWithMessages
@@ -44,6 +45,7 @@ class HistoryRepositoryImpl @Inject constructor(
                         entity?.toChatHistory()
                     }
             } catch (e: Exception) {
+                Log.e("whatisthis", e.toString())
                 Result.failure(e)
             }
         }
@@ -57,16 +59,20 @@ class HistoryRepositoryImpl @Inject constructor(
                         entities.map(ChatHistoryWithMessages::toChatHistory)
                     }
             } catch (e: Exception) {
+                Log.e("whatisthis", e.toString())
                 Result.failure(e)
             }
         }
 
     override suspend fun deleteChatHistory(chatHistory: ChatHistory): Result<Unit> =
-        localHistoryDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
-
-    override suspend fun deleteAllChatHistories() {
-        localHistoryDataSource.deleteAllChatHistories()
-    }
+        withContext(Dispatchers.IO) {
+            try {
+                localHistoryDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
+            } catch (e: Exception) {
+                Log.e("whatisthis", e.toString())
+                Result.failure(e)
+            }
+        }
 
     private suspend fun updateExistingChatHistory(
         chatHistoryId: Long,

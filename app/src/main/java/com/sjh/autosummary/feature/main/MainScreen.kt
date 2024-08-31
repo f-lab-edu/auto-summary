@@ -1,5 +1,6 @@
 package com.sjh.autosummary.feature.main
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -61,21 +63,29 @@ fun MainRoute(
     viewModel: MainViewModel = hiltViewModel(),
 ) {
     val state by viewModel.collectAsState()
+    val context = LocalContext.current
 
-    viewModel.collectSideEffect {
-        when (it) {
-            is MainScreenSideEffect.ShowToast -> Unit
+    viewModel.collectSideEffect { sideEffect ->
+        when (sideEffect) {
+            is MainScreenSideEffect.ShowToast -> Toast
+                .makeText(
+                    context,
+                    sideEffect.message,
+                    Toast.LENGTH_SHORT
+                )
+                .show()
+
+            MainScreenSideEffect.MoveToHistoryScreen -> onHistoryClick()
         }
     }
 
     LaunchedEffect(chatHistoryId) {
-        viewModel.handleEvent(MainScreenEvent.StartChat(chatHistoryId = chatHistoryId))
+        viewModel.handleEvent(MainScreenEvent.StartChat(chatHistoryId))
     }
 
     MainScreen(
         state = state,
         onHistoryClick = {
-            onHistoryClick()
             viewModel.handleEvent(MainScreenEvent.OnHistoryClick)
         },
         onSearchClick = { message ->

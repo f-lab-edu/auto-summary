@@ -42,8 +42,7 @@ class MainViewModel @Inject constructor(
             is MainScreenEvent.StartChat -> {
                 if (event.chatHistoryId != 0L) {
                     loadChatHistory(event.chatHistoryId)
-                }
-                else {
+                } else {
                     createChatHistory()
                 }
             }

@@ -40,8 +40,12 @@ class MainViewModel @Inject constructor(
     fun handleEvent(event: MainScreenEvent) {
         when (event) {
             is MainScreenEvent.StartChat -> {
-                if (event.chatHistoryId != 0L) loadChatHistory(event.chatHistoryId)
-                else createChatHistory()
+                if (event.chatHistoryId != 0L) {
+                    loadChatHistory(event.chatHistoryId)
+                }
+                else {
+                    createChatHistory()
+                }
             }
 
             is MainScreenEvent.OnSearchClick -> requestChatResponseAndSummary(event.message)

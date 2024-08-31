@@ -68,13 +68,14 @@ fun SummaryRoute(
 
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
-            is SummaryScreenSideEffect.ShowToast -> Toast
-                .makeText(
-                    context,
-                    sideEffect.message,
-                    Toast.LENGTH_SHORT
-                )
-                .show()
+            is SummaryScreenSideEffect.ShowToast ->
+                Toast
+                    .makeText(
+                        context,
+                        sideEffect.message,
+                        Toast.LENGTH_SHORT
+                    )
+                    .show()
 
             is SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen -> {
                 summaryInformationDetail = sideEffect.chatSummary

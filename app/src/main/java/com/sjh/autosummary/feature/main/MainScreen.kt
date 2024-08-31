@@ -67,13 +67,14 @@ fun MainRoute(
 
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
-            is MainScreenSideEffect.ShowToast -> Toast
-                .makeText(
-                    context,
-                    sideEffect.message,
-                    Toast.LENGTH_SHORT
-                )
-                .show()
+            is MainScreenSideEffect.ShowToast ->
+                Toast
+                    .makeText(
+                        context,
+                        sideEffect.message,
+                        Toast.LENGTH_SHORT
+                    )
+                    .show()
 
             MainScreenSideEffect.MoveToHistoryScreen -> onHistoryClick()
         }

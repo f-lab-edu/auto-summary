@@ -70,16 +70,11 @@ fun SummaryRoute(
         when (sideEffect) {
             is SummaryScreenSideEffect.ShowToast ->
                 Toast
-                    .makeText(
-                        context,
-                        sideEffect.message,
-                        Toast.LENGTH_SHORT
-                    )
+                    .makeText(context, sideEffect.message, Toast.LENGTH_SHORT)
                     .show()
 
-            is SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen -> {
+            is SummaryScreenSideEffect.MoveToSummaryScreenDetailScreen ->
                 summaryInformationDetail = sideEffect.chatSummary
-            }
         }
     }
 

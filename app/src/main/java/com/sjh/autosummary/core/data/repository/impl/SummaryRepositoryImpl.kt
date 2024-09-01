@@ -6,8 +6,6 @@ import com.sjh.autosummary.core.database.LocalSummaryDataSource
 import com.sjh.autosummary.core.database.room.entity.ChatSummaryEntity
 import com.sjh.autosummary.core.model.ChatSummary
 import com.sjh.autosummary.core.model.MessageContent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -19,71 +17,62 @@ class SummaryRepositoryImpl @Inject constructor(
 
     override suspend fun addOrUpdateChatSummary(chatSummaryContent: MessageContent): List<Long> {
         val extractedJson = extractJsonString(chatSummaryContent.content) ?: return emptyList()
-        return withContext(Dispatchers.IO) {
-            try {
-                convertJsonToChatSummary(extractedJson)
-                    .mapNotNull {
-                        localSummaryDataSource
-                            .insertChatSummary(it.toChatSummaryEntity())
-                            .getOrNull()
-                    }
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                emptyList<Long>()
-            }
+        return try {
+            convertJsonToChatSummary(extractedJson)
+                .mapNotNull {
+                    localSummaryDataSource
+                        .insertChatSummary(it.toChatSummaryEntity())
+                        .getOrNull()
+                }
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            emptyList<Long>()
         }
     }
 
     override suspend fun findChatSummary(chatSummaryId: Long): Result<ChatSummary?> =
-        withContext(Dispatchers.IO) {
-            try {
-                localSummaryDataSource.getChatSummaryById(chatSummaryId)
-                    .mapCatching { entity ->
-                        entity?.toChatSummary()
-                    }
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                Result.failure(e)
-            }
+        try {
+            localSummaryDataSource
+                .getChatSummaryById(chatSummaryId)
+                .mapCatching { entity ->
+                    entity?.toChatSummary()
+                }
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            Result.failure(e)
         }
 
     override suspend fun retrieveAllChatSummaries(): Result<List<ChatSummary>> =
-        withContext(Dispatchers.IO) {
-            try {
-                localSummaryDataSource
-                    .getAllChatSummaries()
-                    .mapCatching { entities ->
-                        entities.map(ChatSummaryEntity::toChatSummary)
-                    }
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                Result.failure(e)
-            }
+        try {
+            localSummaryDataSource
+                .getAllChatSummaries()
+                .mapCatching { entities ->
+                    entities.map(ChatSummaryEntity::toChatSummary)
+                }
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            Result.failure(e)
         }
 
     override suspend fun retrieveAllChatSummariesInJson(): Result<List<String>> =
-        withContext(Dispatchers.IO) {
-            try {
-                val entities = localSummaryDataSource
-                    .getAllChatSummaries()
-                    .getOrThrow()
+        try {
+            val entities = localSummaryDataSource
+                .getAllChatSummaries()
+                .getOrThrow()
 
-                Result.success(entities.map { convertChatSummaryEntityToJson(it) })
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                Result.failure(e)
-            }
+            Result.success(entities.map { convertChatSummaryEntityToJson(it) })
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            Result.failure(e)
         }
 
     override suspend fun deleteChatSummary(chatSummary: ChatSummary): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            try {
-                localSummaryDataSource
-                    .deleteChatSummary(chatSummary.toChatSummaryEntity())
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                Result.failure(e)
-            }
+        try {
+            localSummaryDataSource
+                .deleteChatSummary(chatSummary.toChatSummaryEntity())
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            Result.failure(e)
         }
 
     private fun extractJsonString(input: String): String? {

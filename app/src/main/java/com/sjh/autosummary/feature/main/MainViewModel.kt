@@ -189,10 +189,12 @@ class MainViewModel @Inject constructor(
             // 1. 저장된 모든 요약 정보 가져오기 (실패 시 새로운 답변 정보만 저장한다.)
             val retrieveResult = summaryRepository
                 .retrieveAllChatSummariesInJson()
-                .getOrNull() ?: emptyList()
+                .getOrNull()
+                .orEmpty()
 
             val firstSummary = retrieveResult
-                .firstOrNull() ?: ""
+                .firstOrNull()
+                .orEmpty()
 
             Log.d("whatisthis", "firstSummary $firstSummary")
 

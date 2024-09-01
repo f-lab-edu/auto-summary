@@ -48,7 +48,7 @@ class SummaryViewModel @Inject constructor(
             reduce {
                 state.copy(
                     chatSummaryState = LoadState.Succeeded(
-                        retrieveResult ?: emptyList<ChatSummary>()
+                        retrieveResult.orEmpty()
                     )
                 )
             }

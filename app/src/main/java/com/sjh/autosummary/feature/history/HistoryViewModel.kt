@@ -30,9 +30,7 @@ class HistoryViewModel @Inject constructor(
     fun handleEvent(event: HistoryScreenEvent) {
         when (event) {
             HistoryScreenEvent.ShowAllChatHistory -> fetchAllChatHistroy()
-            is HistoryScreenEvent.OnChatHistoryLongClick -> {
-                deleteChatHistory(event.chatHistory)
-            }
+            is HistoryScreenEvent.OnChatHistoryLongClick -> deleteChatHistory(event.chatHistory)
         }
     }
 

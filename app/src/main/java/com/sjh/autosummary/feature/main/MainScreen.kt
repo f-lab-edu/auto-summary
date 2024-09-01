@@ -69,11 +69,7 @@ fun MainRoute(
         when (sideEffect) {
             is MainScreenSideEffect.ShowToast ->
                 Toast
-                    .makeText(
-                        context,
-                        sideEffect.message,
-                        Toast.LENGTH_SHORT
-                    )
+                    .makeText(context, sideEffect.message, Toast.LENGTH_SHORT)
                     .show()
 
             MainScreenSideEffect.MoveToHistoryScreen -> onHistoryClick()

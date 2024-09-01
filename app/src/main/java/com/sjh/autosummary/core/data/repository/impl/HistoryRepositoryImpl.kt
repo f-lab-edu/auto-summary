@@ -8,8 +8,6 @@ import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
 import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.core.model.MessageContent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class HistoryRepositoryImpl @Inject constructor(
@@ -37,42 +35,31 @@ class HistoryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun findChatHistory(chatHistoryId: Long): Result<ChatHistory?> =
-        withContext(Dispatchers.IO) {
-            try {
-                localHistoryDataSource
-                    .getChatHistoryWithMessagesById(chatHistoryId)
-                    .mapCatching { entity ->
-                        entity?.toChatHistory()
-                    }
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                Result.failure(e)
-            }
+        try {
+            localHistoryDataSource
+                .getChatHistoryWithMessagesById(chatHistoryId)
+                .mapCatching { entity ->
+                    entity?.toChatHistory()
+                }
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            Result.failure(e)
         }
 
     override suspend fun retrieveAllChatHistories(): Result<List<ChatHistory>> =
-        withContext(Dispatchers.IO) {
-            try {
-                localHistoryDataSource
-                    .getAllChatHistoriesWithMessages()
-                    .mapCatching { entities ->
-                        entities.map(ChatHistoryWithMessages::toChatHistory)
-                    }
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                Result.failure(e)
-            }
+        try {
+            localHistoryDataSource
+                .getAllChatHistoriesWithMessages()
+                .mapCatching { entities ->
+                    entities.map(ChatHistoryWithMessages::toChatHistory)
+                }
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            Result.failure(e)
         }
 
     override suspend fun deleteChatHistory(chatHistory: ChatHistory): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            try {
-                localHistoryDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                Result.failure(e)
-            }
-        }
+        localHistoryDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
 
     private suspend fun updateExistingChatHistory(
         chatHistoryId: Long,

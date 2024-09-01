@@ -63,9 +63,10 @@ fun HistoryRoute(
 
     viewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
-            is HistoryScreenSideEffect.ShowToast -> {
-                Toast.makeText(context, sideEffect.message, Toast.LENGTH_SHORT).show()
-            }
+            is HistoryScreenSideEffect.ShowToast ->
+                Toast
+                    .makeText(context, sideEffect.message, Toast.LENGTH_SHORT)
+                    .show()
         }
     }
 

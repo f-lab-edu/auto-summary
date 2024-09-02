@@ -188,16 +188,11 @@ class MainViewModel @Inject constructor(
 
             // 1. 저장된 모든 요약 정보 가져오기 (실패 시 새로운 답변 정보만 저장한다.)
             val retrieveResult = summaryRepository
-                .retrieveAllChatSummariesInJson()
+                .retrieveAllChatSummaries()
                 .getOrNull()
                 .orEmpty()
 
-            val firstSummary = retrieveResult
-                .firstOrNull()
-                .orEmpty()
-
-            Log.d("whatisthis", "firstSummary $firstSummary")
-
+            Log.d("whatisthis", "1. 저장된 모든 요약 정보 : $retrieveResult")
             // 2. 답변 요약하기 (실패 시 기존 답변을 그대로 사용한다.)
             val responseSummaryResult = chatRepository
                 .requestChatResponseSummary(responseMessage)
@@ -206,24 +201,25 @@ class MainViewModel @Inject constructor(
             val responseSummaryMessage =
                 responseSummaryResult.responseMessage ?: return Result.success(false)
 
+            Log.d("whatisthis", "2. 답변 요약: $responseSummaryMessage")
             // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성후 요약 요청 (실패 시 요약된 답변만 저장)
             val responseSummaryUpdateResult = chatRepository
                 .requestChatSummaryUpdate(
-                    firstSummary,
+                    retrieveResult,
                     responseSummaryMessage
                 )
                 .getOrNull() ?: responseSummaryResult
 
-            Log.d("whatisthis", "responseSummaryUpdateResult $responseSummaryUpdateResult")
-
             val responseSummaryUpdateMessage =
                 responseSummaryUpdateResult.responseMessage ?: return Result.success(false)
 
+            Log.d("whatisthis", "3. 요약 요청: $responseSummaryUpdateMessage")
             // 4. 새로운 요약 정보로 데이터 갱신
             val updateSummaryResult =
                 summaryRepository.addOrUpdateChatSummary(responseSummaryUpdateMessage)
             if (updateSummaryResult.isEmpty()) return Result.success(false)
 
+            Log.d("whatisthis", "4. 새로운 요약 정보: $updateSummaryResult")
             return Result.success(true)
         } catch (e: Exception) {
             return Result.failure(e)

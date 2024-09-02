@@ -6,7 +6,6 @@ import com.sjh.autosummary.core.database.LocalSummaryDataSource
 import com.sjh.autosummary.core.database.room.entity.ChatSummaryEntity
 import com.sjh.autosummary.core.model.ChatSummary
 import com.sjh.autosummary.core.model.MessageContent
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
@@ -54,18 +53,6 @@ class SummaryRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
 
-    override suspend fun retrieveAllChatSummariesInJson(): Result<List<String>> =
-        try {
-            val entities = localSummaryDataSource
-                .getAllChatSummaries()
-                .getOrThrow()
-
-            Result.success(entities.map { convertChatSummaryEntityToJson(it) })
-        } catch (e: Exception) {
-            Log.e("whatisthis", e.toString())
-            Result.failure(e)
-        }
-
     override suspend fun deleteChatSummary(chatSummary: ChatSummary): Result<Unit> =
         try {
             localSummaryDataSource
@@ -88,9 +75,6 @@ class SummaryRepositoryImpl @Inject constructor(
             null
         }
     }
-
-    private fun convertChatSummaryEntityToJson(chatSummaryEntity: ChatSummaryEntity): String =
-        json.encodeToString(chatSummaryEntity)
 
     private fun convertJsonToChatSummary(chatSummaryInJson: String): List<ChatSummary> =
         json.decodeFromString(chatSummaryInJson)

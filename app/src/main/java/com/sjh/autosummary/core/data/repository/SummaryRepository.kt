@@ -10,7 +10,5 @@ interface SummaryRepository {
 
     suspend fun retrieveAllChatSummaries(): Result<List<ChatSummary>>
 
-    suspend fun retrieveAllChatSummariesInJson(): Result<List<String>>
-
     suspend fun deleteChatSummary(chatSummary: ChatSummary): Result<Unit>
 }

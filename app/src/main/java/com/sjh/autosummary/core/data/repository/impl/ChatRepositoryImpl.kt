@@ -41,7 +41,8 @@ class ChatRepositoryImpl @Inject constructor(
         requestChatGpt(
             ChatRequest(
                 buildChatSummarySummarizeRequest(
-                    chatSummaries, responseSummaryContent.content
+                    chatSummaries,
+                    responseSummaryContent.content
                 )
             )
         )
@@ -70,15 +71,16 @@ class ChatRepositoryImpl @Inject constructor(
     private fun buildSummaryRequest(chatResponse: String): List<MessageContent> = listOf(
         MessageContent(
             content = """
-        "${chatResponse.replace("\"", "\\\"")}"
-        위 내용들을 요약해주세요.
-        """.trimIndent(),
+                "${chatResponse.replace("\"", "\\\"")}"
+                위 내용들을 요약해주세요.
+            """.trimIndent(),
             role = ChatRoleType.USER
         )
     )
 
     private fun buildChatSummarySummarizeRequest(
-        chatSummaries: List<ChatSummary>, responseSummary: String
+        chatSummaries: List<ChatSummary>,
+        responseSummary: String
     ): List<MessageContent> {
         // 메시지 콘텐츠 생성
         val summaryMessageContents = chatSummaries.map {
@@ -91,16 +93,16 @@ class ChatRepositoryImpl @Inject constructor(
         // 최종 요청 메시지 추가
         val responseMessageContent = MessageContent(
             content = """
-            response:$responseSummary
-
-            Please consolidate and summarize the above contents(summaries, response) into an array of JSON objects
-            1. If the response relates to the summaries object, update it using the same id (do not omit any fields for updated summaries)
-            2. If the response contains new content unrelated to the summaries, use id 0
-            3. Do not include unchanged summaries in the output; only provide updated summaries with their ids
-            Use array format even for one object.
-            Each object should have this structure:
-            $chatSummaryInJsonForm
-        """.trimIndent(),
+                response:$responseSummary
+    
+                Please consolidate and summarize the above contents(summaries, response) into an array of JSON objects
+                1. If the response relates to the summaries object, update it using the same id (do not omit any fields for updated summaries)
+                2. If the response contains new content unrelated to the summaries, use id 0
+                3. Do not include unchanged summaries in the output; only provide updated summaries with their ids
+                Use array format even for one object.
+                Each object should have this structure:
+                $chatSummaryInJsonForm
+            """.trimIndent(),
             role = ChatRoleType.USER
         )
 

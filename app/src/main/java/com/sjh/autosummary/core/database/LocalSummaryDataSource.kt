@@ -6,7 +6,7 @@ interface LocalSummaryDataSource {
 
     suspend fun insertChatSummary(chatSummary: ChatSummaryEntity): Result<Long>
 
-    suspend fun deleteChatSummary(chatSummary: ChatSummaryEntity)
+    suspend fun deleteChatSummary(chatSummary: ChatSummaryEntity): Result<Unit>
 
     suspend fun getChatSummaryById(chatSummaryId: Long): Result<ChatSummaryEntity?>
 

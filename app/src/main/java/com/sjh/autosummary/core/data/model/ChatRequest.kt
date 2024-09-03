@@ -3,5 +3,5 @@ package com.sjh.autosummary.core.data.model
 import com.sjh.autosummary.core.model.MessageContent
 
 data class ChatRequest(
-    val requestMessage: MessageContent,
+    val requestMessages: List<MessageContent>,
 )

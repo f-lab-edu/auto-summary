@@ -53,32 +53,36 @@ class LocalHistoryDataSourceImpl @Inject constructor(
         chatHistoryEntity: ChatHistoryEntity,
         messageContentEntities: List<MessageContentEntity>
     ): Result<Long> =
-        try {
-            val chatHistoryId = chatHistoryDao.insertChatHistory(chatHistoryEntity)
-            for (messageContent in messageContentEntities) {
-                messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryId))
+        withContext(Dispatchers.IO) {
+            try {
+                val chatHistoryId = chatHistoryDao.insertChatHistory(chatHistoryEntity)
+                for (messageContent in messageContentEntities) {
+                    messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryId))
+                }
+                Result.success(chatHistoryId)
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-            Result.success(chatHistoryId)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
 
     override suspend fun updateChatHistoryWithMessage(
         chatHistoryEntity: ChatHistoryEntity,
         messageContentEntities: List<MessageContentEntity>
     ): Result<Long> =
-        try {
-            // 기존 메시지 내용 삭제
-            messageContentDao.deleteMessagesByChatHistoryId(chatHistoryEntity.id)
-            // 채팅 기록 업데이트
-            chatHistoryDao.updateChatHistory(chatHistoryEntity)
-            // 새 메시지 내용 삽입
-            for (messageContent in messageContentEntities) {
-                messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryEntity.id))
+        withContext(Dispatchers.IO) {
+            try {
+                // 기존 메시지 내용 삭제
+                messageContentDao.deleteMessagesByChatHistoryId(chatHistoryEntity.id)
+                // 채팅 기록 업데이트
+                chatHistoryDao.updateChatHistory(chatHistoryEntity)
+                // 새 메시지 내용 삽입
+                for (messageContent in messageContentEntities) {
+                    messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryEntity.id))
+                }
+                Result.success(chatHistoryEntity.id)
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-            Result.success(chatHistoryEntity.id)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
 
     override suspend fun deleteChatHistory(chatHistory: ChatHistoryEntity) =
@@ -89,10 +93,4 @@ class LocalHistoryDataSourceImpl @Inject constructor(
                 Result.failure(e)
             }
         }
-
-    override suspend fun deleteAllChatHistories() {
-        withContext(Dispatchers.IO) {
-            chatHistoryDao.deleteAllChatHistories()
-        }
-    }
 }

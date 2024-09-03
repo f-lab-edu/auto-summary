@@ -1,12 +1,13 @@
 package com.sjh.autosummary.feature.main
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sjh.autosummary.core.common.LoadState
-import com.sjh.autosummary.core.data.model.ChatRequest
+import com.sjh.autosummary.core.data.model.ChatResponse
 import com.sjh.autosummary.core.data.repository.ChatRepository
 import com.sjh.autosummary.core.data.repository.HistoryRepository
-import com.sjh.autosummary.core.domain.UpdateChatSummaryUseCase
+import com.sjh.autosummary.core.data.repository.SummaryRepository
 import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.core.model.ChatRoleType
 import com.sjh.autosummary.core.model.MessageContent
@@ -29,7 +30,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val historyRepository: HistoryRepository,
-    private val updateChatSummaryUseCase: UpdateChatSummaryUseCase,
+    private val summaryRepository: SummaryRepository,
 ) : ViewModel(),
     ContainerHost<MainScreenState, MainScreenSideEffect> {
 
@@ -46,17 +47,13 @@ class MainViewModel @Inject constructor(
                 }
             }
 
-            is MainScreenEvent.OnSearchClick -> {
-                requestChatResponse(event.message)
-            }
-
-            MainScreenEvent.OnHistoryClick -> {
-                saveChatHistory()
-            }
+            is MainScreenEvent.OnSearchClick -> requestChatResponseAndSummary(event.message)
+            MainScreenEvent.OnHistoryClick -> saveChatHistoryAndMoveToHistory()
         }
     }
 
-    private fun saveChatHistory(): Job = viewModelScope.launch {
+    /** chat 기록을 저장하고, 화면을 history screen으로 전환을 시도합니다. */
+    private fun saveChatHistoryAndMoveToHistory(): Job = viewModelScope.launch {
         container.orbit {
             val currentUiState =
                 state.chatHistoryState as? LoadState.Succeeded ?: return@orbit
@@ -64,6 +61,8 @@ class MainViewModel @Inject constructor(
             historyRepository.addOrUpdateChatHistory(
                 chatHistory = currentUiState.data
             )
+
+            postSideEffect(MainScreenSideEffect.MoveToHistoryScreen)
         }
     }
 
@@ -106,7 +105,8 @@ class MainViewModel @Inject constructor(
                     name = chatHistoryResult.name
                 )
             } else {
-                TODO("데이터 불러오기 실패 토스트 띄우기")
+                postSideEffect(MainScreenSideEffect.ShowToast("데이터 불러오기 실패"))
+                postSideEffect(MainScreenSideEffect.MoveToHistoryScreen)
             }
 
             reduce {
@@ -117,7 +117,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun requestChatResponse(message: String): Job = viewModelScope.launch {
+    private fun requestChatResponseAndSummary(message: String): Job = viewModelScope.launch {
         container.orbit {
             val currentChatHistoryUiState =
                 state.chatHistoryState as? LoadState.Succeeded ?: return@orbit
@@ -141,7 +141,8 @@ class MainViewModel @Inject constructor(
                 )
             }
 
-            val chatResponseResult = chatRepository.requestChatResponse(ChatRequest(myMessage))
+            val chatResponseResult = chatRepository
+                .requestChatResponse(myMessage)
 
             if (chatResponseResult.isFailure) {
                 reduce {
@@ -163,10 +164,10 @@ class MainViewModel @Inject constructor(
 
             val gptResponseResult = chatResponseResult.getOrNull()
 
+            if (gptResponseResult != null) updateChatSummary(gptResponseResult)
+
             val gptMessage =
                 gptResponseResult?.responseMessage ?: getErrorMessageContent("답변 결과 없음")
-
-            if (gptResponseResult != null) updateChatSummaryUseCase(gptMessage)
 
             reduce {
                 val gptResponseState = gptResponseResult != null
@@ -174,12 +175,54 @@ class MainViewModel @Inject constructor(
                 state.copy(
                     gptResponseState = LoadState.Succeeded(gptResponseState),
                     chatHistoryState = LoadState.Succeeded(
-                        currentChatHistory.copy(
-                            messageList = chatMessageList.toList()
-                        )
+                        currentChatHistory.copy(messageList = chatMessageList.toList())
                     )
                 )
             }
+        }
+    }
+
+    private suspend fun updateChatSummary(chatResponse: ChatResponse): Result<Boolean> {
+        try {
+            val responseMessage = chatResponse.responseMessage ?: return Result.success(false)
+
+            // 1. 저장된 모든 요약 정보 가져오기 (실패 시 새로운 답변 정보만 저장한다.)
+            val retrieveResult = summaryRepository
+                .retrieveAllChatSummaries()
+                .getOrNull()
+                .orEmpty()
+
+            Log.d("whatisthis", "1. 저장된 모든 요약 정보 : $retrieveResult")
+            // 2. 답변 요약하기 (실패 시 기존 답변을 그대로 사용한다.)
+            val responseSummaryResult = chatRepository
+                .requestChatResponseSummary(responseMessage)
+                .getOrNull() ?: chatResponse
+
+            val responseSummaryMessage =
+                responseSummaryResult.responseMessage ?: return Result.success(false)
+
+            Log.d("whatisthis", "2. 답변 요약: $responseSummaryMessage")
+            // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성후 요약 요청 (실패 시 요약된 답변만 저장)
+            val responseSummaryUpdateResult = chatRepository
+                .requestChatSummaryUpdate(
+                    retrieveResult,
+                    responseSummaryMessage
+                )
+                .getOrNull() ?: responseSummaryResult
+
+            val responseSummaryUpdateMessage =
+                responseSummaryUpdateResult.responseMessage ?: return Result.success(false)
+
+            Log.d("whatisthis", "3. 요약 요청: $responseSummaryUpdateMessage")
+            // 4. 새로운 요약 정보로 데이터 갱신
+            val updateSummaryResult =
+                summaryRepository.addOrUpdateChatSummary(responseSummaryUpdateMessage)
+            if (updateSummaryResult.isEmpty()) return Result.success(false)
+
+            Log.d("whatisthis", "4. 새로운 요약 정보: $updateSummaryResult")
+            return Result.success(true)
+        } catch (e: Exception) {
+            return Result.failure(e)
         }
     }
 

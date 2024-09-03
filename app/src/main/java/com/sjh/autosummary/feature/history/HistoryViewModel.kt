@@ -30,9 +30,7 @@ class HistoryViewModel @Inject constructor(
     fun handleEvent(event: HistoryScreenEvent) {
         when (event) {
             HistoryScreenEvent.ShowAllChatHistory -> fetchAllChatHistroy()
-            is HistoryScreenEvent.OnChatHistoryLongClick -> {
-                deleteChatHistory(event.chatHistory)
-            }
+            is HistoryScreenEvent.OnChatHistoryLongClick -> deleteChatHistory(event.chatHistory)
         }
     }
 
@@ -71,7 +69,7 @@ class HistoryViewModel @Inject constructor(
                     }
                 },
                 onFailure = {
-                    TODO("데이터 불러오기 실패 토스트 띄우기")
+                    postSideEffect(HistoryScreenSideEffect.ShowToast("데이터 불러오기 실패"))
                 }
             )
         }

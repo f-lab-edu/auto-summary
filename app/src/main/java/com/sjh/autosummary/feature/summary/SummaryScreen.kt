@@ -313,9 +313,9 @@ fun SummaryContentDetail(
         item {
             Spacer(modifier = modifier.height(height = 8.dp))
         }
-        items(summary.content.size) { idx ->
+        items(summary.childInformations.size) { idx ->
             BasicInformationForm(
-                informationForm = summary.content[idx],
+                informationForm = summary.childInformations[idx],
                 headFontSize = 24,
                 modifier = modifier,
             )
@@ -372,7 +372,7 @@ private fun SummaryContentDetailPreview() {
                 id = 0L,
                 title = "제목 01",
                 subTitle = "부제목",
-                content = listOf(
+                childInformations = listOf(
                     InformationForm(
                         head = "소제목 1",
                         body = "내용 내용 내용 내용",

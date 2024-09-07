@@ -26,6 +26,7 @@ class SummaryRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e("whatisthis", e.toString())
             emptyList<Long>()
+            TODO("json 형식으로 변환을 실패했을 경우, 답변만 다시 json 형식으로 변경을 시도해 Summary에 추가한다.")
         }
     }
 
@@ -84,12 +85,12 @@ private fun ChatSummary.toChatSummaryEntity() = ChatSummaryEntity(
     id = id,
     title = title,
     subTitle = subTitle,
-    content = content
+    content = childInformations
 )
 
 private fun ChatSummaryEntity.toChatSummary() = ChatSummary(
     id = id,
     title = title,
     subTitle = subTitle,
-    content = content
+    childInformations = content
 )

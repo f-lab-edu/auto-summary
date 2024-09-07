@@ -192,7 +192,7 @@ class MainViewModel @Inject constructor(
                 .getOrNull()
                 .orEmpty()
 
-            Log.d("whatisthis", "1. 저장된 모든 요약 정보 : $retrieveResult")
+            Log.d("whatisthis", "1. retrieveResult : $retrieveResult")
             // 2. 답변 요약하기 (실패 시 기존 답변을 그대로 사용한다.)
             val responseSummaryResult = chatRepository
                 .requestChatResponseSummary(responseMessage)
@@ -201,7 +201,7 @@ class MainViewModel @Inject constructor(
             val responseSummaryMessage =
                 responseSummaryResult.responseMessage ?: return Result.success(false)
 
-            Log.d("whatisthis", "2. 답변 요약: $responseSummaryMessage")
+            Log.d("whatisthis", "2. responseSummaryMessage: $responseSummaryMessage")
             // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성후 요약 요청 (실패 시 요약된 답변만 저장)
             val responseSummaryUpdateResult = chatRepository
                 .requestChatSummaryUpdate(
@@ -213,13 +213,13 @@ class MainViewModel @Inject constructor(
             val responseSummaryUpdateMessage =
                 responseSummaryUpdateResult.responseMessage ?: return Result.success(false)
 
-            Log.d("whatisthis", "3. 요약 요청: $responseSummaryUpdateMessage")
+            Log.d("whatisthis", "3. responseSummaryUpdateMessage: $responseSummaryUpdateMessage")
             // 4. 새로운 요약 정보로 데이터 갱신
             val updateSummaryResult =
                 summaryRepository.addOrUpdateChatSummary(responseSummaryUpdateMessage)
             if (updateSummaryResult.isEmpty()) return Result.success(false)
 
-            Log.d("whatisthis", "4. 새로운 요약 정보: $updateSummaryResult")
+            Log.d("whatisthis", "4. updateSummaryResult: $updateSummaryResult")
             return Result.success(true)
         } catch (e: Exception) {
             return Result.failure(e)

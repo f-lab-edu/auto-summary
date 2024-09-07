@@ -52,7 +52,7 @@ class ChatRepositoryImpl @Inject constructor(
 
     private suspend fun requestChatGpt(chatRequest: ChatRequest): Result<ChatResponse> =
         withContext(Dispatchers.IO) {
-            Log.d("whatisthis", "request:$chatRequest")
+            Log.d("whatisthis", "requestChatGpt : $chatRequest")
             try {
                 networkDataSource.createChatCompletion(chatRequest.toGptChatRequest())
                     .mapCatching(GptChatResponse::toChatResponse)
@@ -62,11 +62,13 @@ class ChatRepositoryImpl @Inject constructor(
             }
         }
 
+    /** 입력된 chatSummary의 띄어쓰기를 제외하고 모든 공백을 제거해서 반환해주는 메서드 (글자 수를 줄이기 위해) */
     private fun convertChatSummaryToJson(chatSummary: ChatSummary): String =
         json
             .encodeToString(chatSummary)
-            .replace(" ", "")
-            .replace("\n", "")
+            .replace(Regex("[\\t\\n\\r]+"), "") // 탭, 줄바꿈, 캐리지 리턴 제거
+            .replace(Regex("\\s{2,}"), " ") // 연속된 공백을 하나의 띄어쓰기로 대체
+            .trim() // 문자열 양 끝의 공백 제거
 
     private fun buildSummaryRequest(chatResponse: String): List<MessageContent> = listOf(
         MessageContent(
@@ -93,15 +95,17 @@ class ChatRepositoryImpl @Inject constructor(
         // 최종 요청 메시지 추가
         val responseMessageContent = MessageContent(
             content = """
-                response:$responseSummary
+                new summary :$responseSummary
     
-                Please consolidate and summarize the above contents(summaries, response) into an array of JSON objects
-                1. If the response relates to the summaries object, update it using the same id (do not omit any fields for updated summaries)
-                2. If the response contains new content unrelated to the summaries, use id 0
-                3. Do not include unchanged summaries in the output; only provide updated summaries with their ids
-                Use array format even for one object.
-                Each object should have this structure:
-                $chatSummaryInJsonForm
+                Please analyze the 'summaries' array and the 'new summary', and process them as follows:
+                1. If the 'new summary' is related to any items in the 'summaries' array:
+                 - Maintain the ID of each 'summaries' item and appropriately integrate the contents of 'summaries' and the 'new summary'.
+                 - When integrating, group the items based on their broader topic or category to create a new 'summaries' array."
+                2. If the 'new summary' is not related to any items in the 'summaries' array:
+                 - Create a 'new summary' with an ID set to 0.
+                3. Do not include unchanged 'summaries' in the result; only provide updated 'summaries' with their ids.
+                4. The result should be in the format of an array of JSON objects. (Even if there is only one object, please use array format.)
+                5. Each object must include all fields and should have the following structure, ensuring it accurately reflects the content at each level. The 'childInformations' field is recursive and should be structured accordingly:                $chatSummaryInJsonForm
             """.trimIndent(),
             role = ChatRoleType.USER
         )
@@ -110,26 +114,28 @@ class ChatRepositoryImpl @Inject constructor(
     }
 
     private val chatSummaryInJsonForm = """
-    {
-        "id": 숫자,
-        "title": "문자열",
-        "subTitle": "문자열",
-        "content": [
-            {
-                "head": "문자열",
-                "body": "문자열",
-                "childInformations": [
-                    {
-                        "head": "문자열",
-                        "body": "문자열",
-                        "childInformations": []
-                    },
-                    ...
-                ]
-            },
-            ...
-        ]
-    }
+{
+    "id": 숫자,
+    "title": "문자열",
+    "subTitle": "문자열",
+    "childInformations": [ // 이 부분이 재귀적 구조입니다.
+        {
+            "head": "문자열", // 첫 번째 레벨의 childInformations
+            "body": "문자열",
+            "childInformations": [
+                {
+                    "head": "문자열", // 두 번째 레벨의 childInformations
+                    "body": "문자열",
+                    "childInformations": [
+                        // 재귀
+                    ]
+                },
+                // 추가 항목
+            ]
+        },
+        // 추가 항목
+    ]
+}
     """
 }
 

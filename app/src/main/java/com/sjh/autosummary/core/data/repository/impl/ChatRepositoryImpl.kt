@@ -23,26 +23,26 @@ class ChatRepositoryImpl @Inject constructor(
     private val json: Json,
 ) : ChatRepository {
 
-    override suspend fun requestChatResponse(requestMessage: MessageContent): Result<ChatResponse> =
-        requestChatGpt(ChatRequest(requestMessages = listOf(requestMessage)))
+    override suspend fun receiveAIAnswer(askMessage: MessageContent): Result<ChatResponse> =
+        requestChatGpt(ChatRequest(requestMessages = listOf(askMessage)))
 
-    override suspend fun requestChatResponseSummary(responseContent: MessageContent): Result<ChatResponse> =
+    override suspend fun receiveAISummary(originalMessage: MessageContent): Result<ChatResponse> =
         requestChatGpt(
             ChatRequest(
-                buildSummaryRequest(responseContent.content)
+                buildSummaryRequest(originalMessage.content)
             )
         )
 
-    /** 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성후 요약 요청 */
-    override suspend fun requestChatSummaryUpdate(
-        chatSummaries: List<ChatSummary>,
-        responseSummaryContent: MessageContent,
+    /** 요약된 답변 내용과 모든 요약 정보를 합쳐 새로운 요약문 요청 */
+    override suspend fun receiveAIMergedSummary(
+        storedSummaries: List<ChatSummary>,
+        newSummary: MessageContent,
     ): Result<ChatResponse> = try {
         requestChatGpt(
             ChatRequest(
                 buildChatSummarySummarizeRequest(
-                    chatSummaries,
-                    responseSummaryContent.content
+                    storedSummaries,
+                    newSummary.content
                 )
             )
         )

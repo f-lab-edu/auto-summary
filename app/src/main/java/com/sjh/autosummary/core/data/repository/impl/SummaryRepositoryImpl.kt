@@ -1,6 +1,8 @@
 package com.sjh.autosummary.core.data.repository.impl
 
 import android.util.Log
+import com.sjh.autosummary.core.data.model.ChatResponse
+import com.sjh.autosummary.core.data.repository.ChatRepository
 import com.sjh.autosummary.core.data.repository.SummaryRepository
 import com.sjh.autosummary.core.database.LocalSummaryDataSource
 import com.sjh.autosummary.core.database.room.entity.ChatSummaryEntity
@@ -11,10 +13,53 @@ import javax.inject.Inject
 
 class SummaryRepositoryImpl @Inject constructor(
     private val localSummaryDataSource: LocalSummaryDataSource,
+    private val chatRepository: ChatRepository,
     private val json: Json,
 ) : SummaryRepository {
 
-    override suspend fun addOrUpdateChatSummary(chatSummaryContent: MessageContent): List<Long> {
+    override suspend fun mergeAISummaries(aiAnswer: ChatResponse): Result<Boolean> {
+        try {
+            val answerMessage = aiAnswer.responseMessage ?: return Result.success(false)
+
+            // 1. 저장된 모든 요약 정보 가져오기 (실패 시 새로운 답변 정보만 저장한다.)
+            val retrieveResult = retrieveAllChatSummaries()
+                .getOrNull()
+                .orEmpty()
+
+            Log.d("whatisthis", "1. retrieveResult : $retrieveResult")
+            // 2. 답변 요약하기 (실패 시 기존 답변을 그대로 사용한다.)
+            val summaryResult = chatRepository
+                .receiveAISummary(answerMessage)
+                .getOrNull() ?: aiAnswer
+
+            val aiSummary = summaryResult.responseMessage ?: return Result.success(false)
+
+            Log.d("whatisthis", "2. aiSummary: $aiSummary")
+            // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성후 요약 요청 (실패 시 요약된 답변만 저장)
+            val mergedSummaryResult = chatRepository
+                .receiveAIMergedSummary(
+                    retrieveResult,
+                    aiSummary
+                )
+                .getOrNull() ?: summaryResult
+
+            val aiMergedSummary =
+                mergedSummaryResult.responseMessage ?: return Result.success(false)
+
+            Log.d("whatisthis", "3. aiMergedSummary: $aiMergedSummary")
+            // 4. 새로운 요약 정보로 데이터 갱신
+            val updateSummaryResult = updateSummary(aiMergedSummary)
+            if (updateSummaryResult.isEmpty()) return Result.success(false)
+
+            Log.d("whatisthis", "4. updateSummaryResult: $updateSummaryResult")
+            return Result.success(true)
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            return Result.failure(e)
+        }
+    }
+
+    private suspend fun updateSummary(chatSummaryContent: MessageContent): List<Long> {
         val extractedJson = extractJsonString(chatSummaryContent.content) ?: return emptyList()
         return try {
             convertJsonToChatSummary(extractedJson)

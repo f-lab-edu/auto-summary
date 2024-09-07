@@ -1,10 +1,8 @@
 package com.sjh.autosummary.feature.main
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sjh.autosummary.core.common.LoadState
-import com.sjh.autosummary.core.data.model.ChatResponse
 import com.sjh.autosummary.core.data.repository.ChatRepository
 import com.sjh.autosummary.core.data.repository.HistoryRepository
 import com.sjh.autosummary.core.data.repository.SummaryRepository
@@ -141,13 +139,12 @@ class MainViewModel @Inject constructor(
                 )
             }
 
-            val chatResponseResult = chatRepository
-                .requestChatResponse(myMessage)
+            val askResult = chatRepository.receiveAIAnswer(myMessage)
 
-            if (chatResponseResult.isFailure) {
+            if (askResult.isFailure) {
                 reduce {
                     chatMessageList += getErrorMessageContent(
-                        chatResponseResult.exceptionOrNull().toString()
+                        askResult.exceptionOrNull().toString()
                     )
 
                     state.copy(
@@ -162,15 +159,15 @@ class MainViewModel @Inject constructor(
                 return@orbit
             }
 
-            val gptResponseResult = chatResponseResult.getOrNull()
+            val aiAnswer = askResult.getOrNull()
 
-            if (gptResponseResult != null) updateChatSummary(gptResponseResult)
+            if (aiAnswer != null) summaryRepository.mergeAISummaries(aiAnswer)
 
             val gptMessage =
-                gptResponseResult?.responseMessage ?: getErrorMessageContent("답변 결과 없음")
+                aiAnswer?.responseMessage ?: getErrorMessageContent("답변 결과 없음")
 
             reduce {
-                val gptResponseState = gptResponseResult != null
+                val gptResponseState = aiAnswer != null
                 chatMessageList += gptMessage
                 state.copy(
                     gptResponseState = LoadState.Succeeded(gptResponseState),
@@ -179,50 +176,6 @@ class MainViewModel @Inject constructor(
                     )
                 )
             }
-        }
-    }
-
-    private suspend fun updateChatSummary(chatResponse: ChatResponse): Result<Boolean> {
-        try {
-            val responseMessage = chatResponse.responseMessage ?: return Result.success(false)
-
-            // 1. 저장된 모든 요약 정보 가져오기 (실패 시 새로운 답변 정보만 저장한다.)
-            val retrieveResult = summaryRepository
-                .retrieveAllChatSummaries()
-                .getOrNull()
-                .orEmpty()
-
-            Log.d("whatisthis", "1. retrieveResult : $retrieveResult")
-            // 2. 답변 요약하기 (실패 시 기존 답변을 그대로 사용한다.)
-            val responseSummaryResult = chatRepository
-                .requestChatResponseSummary(responseMessage)
-                .getOrNull() ?: chatResponse
-
-            val responseSummaryMessage =
-                responseSummaryResult.responseMessage ?: return Result.success(false)
-
-            Log.d("whatisthis", "2. responseSummaryMessage: $responseSummaryMessage")
-            // 3. 요약된 답변 내용과 모든 요약 정보를 합쳐 요청 메시지 생성후 요약 요청 (실패 시 요약된 답변만 저장)
-            val responseSummaryUpdateResult = chatRepository
-                .requestChatSummaryUpdate(
-                    retrieveResult,
-                    responseSummaryMessage
-                )
-                .getOrNull() ?: responseSummaryResult
-
-            val responseSummaryUpdateMessage =
-                responseSummaryUpdateResult.responseMessage ?: return Result.success(false)
-
-            Log.d("whatisthis", "3. responseSummaryUpdateMessage: $responseSummaryUpdateMessage")
-            // 4. 새로운 요약 정보로 데이터 갱신
-            val updateSummaryResult =
-                summaryRepository.addOrUpdateChatSummary(responseSummaryUpdateMessage)
-            if (updateSummaryResult.isEmpty()) return Result.success(false)
-
-            Log.d("whatisthis", "4. updateSummaryResult: $updateSummaryResult")
-            return Result.success(true)
-        } catch (e: Exception) {
-            return Result.failure(e)
         }
     }
 

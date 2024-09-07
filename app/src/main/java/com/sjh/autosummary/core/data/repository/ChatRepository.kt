@@ -5,10 +5,10 @@ import com.sjh.autosummary.core.model.ChatSummary
 import com.sjh.autosummary.core.model.MessageContent
 
 interface ChatRepository {
-    suspend fun requestChatResponse(requestMessage: MessageContent): Result<ChatResponse>
-    suspend fun requestChatResponseSummary(responseContent: MessageContent): Result<ChatResponse>
-    suspend fun requestChatSummaryUpdate(
-        chatSummaries: List<ChatSummary>,
-        responseSummaryContent: MessageContent,
+    suspend fun receiveAIAnswer(askMessage: MessageContent): Result<ChatResponse>
+    suspend fun receiveAISummary(originalMessage: MessageContent): Result<ChatResponse>
+    suspend fun receiveAIMergedSummary(
+        storedSummaries: List<ChatSummary>,
+        newSummary: MessageContent,
     ): Result<ChatResponse>
 }

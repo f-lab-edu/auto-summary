@@ -1,13 +1,16 @@
 package com.sjh.autosummary.core.data.repository.impl
 
 import android.util.Log
+import com.sjh.autosummary.core.data.model.RequestMessage
+import com.sjh.autosummary.core.data.model.ResponseMessage
 import com.sjh.autosummary.core.data.repository.HistoryRepository
 import com.sjh.autosummary.core.database.LocalHistoryDataSource
 import com.sjh.autosummary.core.database.model.ChatHistoryWithMessages
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
 import com.sjh.autosummary.core.model.ChatHistory
-import com.sjh.autosummary.core.model.MessageContent
+import com.sjh.autosummary.core.model.ChatRoleType
+import com.sjh.autosummary.core.model.Message
 import javax.inject.Inject
 
 class HistoryRepositoryImpl @Inject constructor(
@@ -103,17 +106,17 @@ private fun ChatHistoryWithMessages.toChatHistory(): ChatHistory {
     )
 }
 
-private fun MessageContent.toMessageContentEntity(chatHistoryId: Long): MessageContentEntity {
+private fun Message.toMessageContentEntity(chatHistoryId: Long): MessageContentEntity {
     return MessageContentEntity(
         chatHistoryId = chatHistoryId,
-        content = this.content,
-        role = this.role,
+        content = content,
+        role = role,
     )
 }
 
-private fun MessageContentEntity.toMessageContent(): MessageContent {
-    return MessageContent(
-        content = this.content,
-        role = this.role,
-    )
-}
+private fun MessageContentEntity.toMessageContent(): Message =
+    when (this.role) {
+        ChatRoleType.SYSTEM -> RequestMessage(content, role)
+        ChatRoleType.USER -> ResponseMessage(content)
+        ChatRoleType.GPT -> RequestMessage(content)
+    }

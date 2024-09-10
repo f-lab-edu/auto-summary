@@ -3,12 +3,12 @@ package com.sjh.autosummary.feature.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sjh.autosummary.core.common.LoadState
+import com.sjh.autosummary.core.data.model.RequestMessage
+import com.sjh.autosummary.core.data.model.ResponseMessage
 import com.sjh.autosummary.core.data.repository.ChatRepository
 import com.sjh.autosummary.core.data.repository.HistoryRepository
 import com.sjh.autosummary.core.data.repository.SummaryRepository
 import com.sjh.autosummary.core.model.ChatHistory
-import com.sjh.autosummary.core.model.ChatRoleType
-import com.sjh.autosummary.core.model.MessageContent
 import com.sjh.autosummary.feature.main.contract.event.MainScreenEvent
 import com.sjh.autosummary.feature.main.contract.sideeffect.MainScreenSideEffect
 import com.sjh.autosummary.feature.main.contract.state.MainScreenState
@@ -124,11 +124,7 @@ class MainViewModel @Inject constructor(
 
             val currentChatHistory = currentChatHistoryUiState.data
             val chatMessageList = currentChatHistory.messageList.toMutableList()
-
-            val myMessage = MessageContent(
-                content = message,
-                role = ChatRoleType.USER
-            )
+            val myMessage = RequestMessage(content = message)
 
             reduce {
                 chatMessageList += myMessage
@@ -139,11 +135,11 @@ class MainViewModel @Inject constructor(
                 )
             }
 
-            val askResult = chatRepository.receiveAIAnswer(myMessage)
+            val askResult = chatRepository.receiveChatResponse(myMessage)
 
             if (askResult.isFailure) {
                 reduce {
-                    chatMessageList += getErrorMessageContent(
+                    chatMessageList += ResponseMessage(
                         askResult.exceptionOrNull().toString()
                     )
 
@@ -161,10 +157,9 @@ class MainViewModel @Inject constructor(
 
             val aiAnswer = askResult.getOrNull()
 
-            if (aiAnswer != null) summaryRepository.mergeAISummaries(aiAnswer)
+            if (aiAnswer != null) summaryRepository.mergeSummaries(aiAnswer.content)
 
-            val gptMessage =
-                aiAnswer?.responseMessage ?: getErrorMessageContent("답변 결과 없음")
+            val gptMessage = aiAnswer ?: ResponseMessage(content = "답변 결과 없음")
 
             reduce {
                 val gptResponseState = aiAnswer != null
@@ -178,11 +173,6 @@ class MainViewModel @Inject constructor(
             }
         }
     }
-
-    private fun getErrorMessageContent(errorMessage: String) = MessageContent(
-        content = errorMessage,
-        role = ChatRoleType.GPT
-    )
 
     private fun getInitialChatHistory() = ChatHistory(
         date = formatDate(LocalDate.now()),

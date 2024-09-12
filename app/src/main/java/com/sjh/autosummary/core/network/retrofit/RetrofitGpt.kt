@@ -3,8 +3,8 @@ package com.sjh.autosummary.core.network.retrofit
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.sjh.autosummary.BuildConfig
 import com.sjh.autosummary.core.network.NetworkDataSource
-import com.sjh.autosummary.core.network.model.GptChatRequest
-import com.sjh.autosummary.core.network.model.GptChatResponse
+import com.sjh.autosummary.core.network.model.GptRequest
+import com.sjh.autosummary.core.network.model.GptResponse
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
@@ -32,11 +32,11 @@ class RetrofitGpt @Inject constructor(
             .build()
             .create(RetrofitGptApi::class.java)
 
-    override suspend fun createChatCompletion(chatRequest: GptChatRequest): Result<GptChatResponse> =
+    override suspend fun makeResponse(request: GptRequest): Result<GptResponse> =
         try {
             val response = networkApi.createChatCompletion(
                 authorization = "Bearer $GPT_API_KEY",
-                chatRequest = chatRequest,
+                request = request,
             )
             Result.success(response)
         } catch (e: Exception) {

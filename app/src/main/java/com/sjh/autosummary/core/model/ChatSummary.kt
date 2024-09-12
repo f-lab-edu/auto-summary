@@ -7,7 +7,7 @@ data class ChatSummary(
     val id: Long,
     val title: String,
     val subTitle: String? = null,
-    val content: List<InformationForm>,
+    val childInformations: List<InformationForm>,
 )
 
 @Serializable

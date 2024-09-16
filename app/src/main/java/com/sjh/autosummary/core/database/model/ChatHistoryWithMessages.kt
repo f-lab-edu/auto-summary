@@ -3,7 +3,7 @@ package com.sjh.autosummary.core.database.model
 import androidx.room.Embedded
 import androidx.room.Relation
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
-import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
+import com.sjh.autosummary.core.database.room.entity.ChatMessageEntity
 
 data class ChatHistoryWithMessages(
     @Embedded val chatHistory: ChatHistoryEntity,
@@ -11,5 +11,5 @@ data class ChatHistoryWithMessages(
         parentColumn = "id",
         entityColumn = "chat_history_id"
     )
-    val messageContents: List<MessageContentEntity>
+    val chatMessages: List<ChatMessageEntity>
 )

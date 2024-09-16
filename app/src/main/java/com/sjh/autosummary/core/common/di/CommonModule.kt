@@ -12,7 +12,7 @@ import javax.inject.Singleton
 class CommonModule {
     @Provides
     @Singleton
-    fun provideNetworkJson(): Json =
+    fun provideJson(): Json =
         Json {
             prettyPrint = true
             isLenient = true

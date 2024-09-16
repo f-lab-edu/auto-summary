@@ -1,11 +1,11 @@
 package com.sjh.autosummary.core.data.di
 
-import com.sjh.autosummary.core.data.repository.ChatRepository
-import com.sjh.autosummary.core.data.repository.HistoryRepository
-import com.sjh.autosummary.core.data.repository.SummaryRepository
-import com.sjh.autosummary.core.data.repository.impl.ChatRepositoryImpl
-import com.sjh.autosummary.core.data.repository.impl.HistoryRepositoryImpl
-import com.sjh.autosummary.core.data.repository.impl.SummaryRepositoryImpl
+import com.sjh.autosummary.core.data.repository.ChatCompletionRepository
+import com.sjh.autosummary.core.data.repository.ChatHistoryRepository
+import com.sjh.autosummary.core.data.repository.ChatSummaryRepository
+import com.sjh.autosummary.core.data.repository.impl.ChatCompletionRepositoryImpl
+import com.sjh.autosummary.core.data.repository.impl.ChatHistoryRepositoryImpl
+import com.sjh.autosummary.core.data.repository.impl.ChatSummaryRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,13 +17,13 @@ import javax.inject.Singleton
 abstract class DataModule {
     @Binds
     @Singleton
-    abstract fun bindChatRepository(chatRepositoryImpl: ChatRepositoryImpl): ChatRepository
+    abstract fun bindChatRepository(chatCompletionRepositoryImpl: ChatCompletionRepositoryImpl): ChatCompletionRepository
 
     @Binds
     @Singleton
-    abstract fun bindHistoryRepository(historyRepositoryImpl: HistoryRepositoryImpl): HistoryRepository
+    abstract fun bindHistoryRepository(chatHistoryRepositoryImpl: ChatHistoryRepositoryImpl): ChatHistoryRepository
 
     @Binds
     @Singleton
-    abstract fun bindSummaryRepository(summaryRepositoryImpl: SummaryRepositoryImpl): SummaryRepository
+    abstract fun bindSummaryRepository(summaryRepositoryImpl: ChatSummaryRepositoryImpl): ChatSummaryRepository
 }

@@ -3,7 +3,7 @@ package com.sjh.autosummary.feature.history
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sjh.autosummary.core.common.LoadState
-import com.sjh.autosummary.core.data.repository.HistoryRepository
+import com.sjh.autosummary.core.data.repository.ChatHistoryRepository
 import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.feature.history.contract.event.HistoryScreenEvent
 import com.sjh.autosummary.feature.history.contract.sideeffect.HistoryScreenSideEffect
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @OptIn(OrbitInternal::class)
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
-    private val historyRepository: HistoryRepository,
+    private val chatHistoryRepository: ChatHistoryRepository,
 ) : ViewModel(),
     ContainerHost<HistoryScreenState, HistoryScreenSideEffect> {
 
@@ -38,7 +38,7 @@ class HistoryViewModel @Inject constructor(
         container.orbit {
             val currentUiState = state.chatHistoryState as? LoadState.Succeeded ?: return@orbit
 
-            val deleteResult = historyRepository
+            val deleteResult = chatHistoryRepository
                 .deleteChatHistory(chatHistory)
                 .getOrNull()
 
@@ -60,7 +60,7 @@ class HistoryViewModel @Inject constructor(
         container.orbit {
             if (state.chatHistoryState is LoadState.Succeeded) return@orbit
 
-            val retrieveResult = historyRepository.retrieveAllChatHistories()
+            val retrieveResult = chatHistoryRepository.retrieveAllChatHistories()
 
             retrieveResult.fold(
                 onSuccess = { foundChatHistories ->

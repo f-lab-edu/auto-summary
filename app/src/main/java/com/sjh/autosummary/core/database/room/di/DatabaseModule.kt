@@ -3,8 +3,8 @@ package com.sjh.autosummary.core.database.room.di
 import android.content.Context
 import androidx.room.Room
 import com.sjh.autosummary.core.database.room.dao.ChatHistoryDao
+import com.sjh.autosummary.core.database.room.dao.ChatMessageDao
 import com.sjh.autosummary.core.database.room.dao.ChatSummaryDao
-import com.sjh.autosummary.core.database.room.dao.MessageContentDao
 import com.sjh.autosummary.core.database.room.db.RoomDatabase
 import dagger.Module
 import dagger.Provides
@@ -31,13 +31,16 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideChatHistoryDao(roomDatabase: RoomDatabase): ChatHistoryDao = roomDatabase.chatHistoryDao()
+    fun provideChatHistoryDao(roomDatabase: RoomDatabase): ChatHistoryDao =
+        roomDatabase.chatHistoryDao()
 
     @Provides
     @Singleton
-    fun provideMessageContentDao(roomDatabase: RoomDatabase): MessageContentDao = roomDatabase.messageContentDao()
+    fun provideMessageContentDao(roomDatabase: RoomDatabase): ChatMessageDao =
+        roomDatabase.chatMessageDao()
 
     @Provides
     @Singleton
-    fun provideChatSummaryDao(roomDatabase: RoomDatabase): ChatSummaryDao = roomDatabase.chatSummaryDao()
+    fun provideChatSummaryDao(roomDatabase: RoomDatabase): ChatSummaryDao =
+        roomDatabase.chatSummaryDao()
 }

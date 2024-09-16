@@ -48,7 +48,6 @@ import com.sjh.autosummary.R
 import com.sjh.autosummary.core.common.LoadState
 import com.sjh.autosummary.core.designsystem.theme.AutoSummaryTheme
 import com.sjh.autosummary.core.model.ChatHistory
-import com.sjh.autosummary.core.model.ChatRoleType
 import com.sjh.autosummary.feature.main.contract.event.MainScreenEvent
 import com.sjh.autosummary.feature.main.contract.sideeffect.MainScreenSideEffect
 import com.sjh.autosummary.feature.main.contract.state.MainScreenState
@@ -110,7 +109,7 @@ fun MainScreen(
         ) {
             MainContent(
                 chatHistoryState = state.chatHistoryState,
-                gptResponseState = state.gptResponseState,
+                responseState = state.responseState,
                 onSearchClick = onSearchClick,
             )
         }
@@ -142,7 +141,7 @@ private fun MainTopBar(
 @Composable
 fun MainContent(
     chatHistoryState: LoadState<ChatHistory>,
-    gptResponseState: LoadState<Boolean>,
+    responseState: LoadState<Boolean>,
     onSearchClick: (String) -> Unit,
 ) {
     Column(
@@ -169,18 +168,18 @@ fun MainContent(
                     }
 
                 is LoadState.Succeeded ->
-                    itemsIndexed(chatHistoryState.data.messageList) { index, message ->
-                        when (message.role) {
-                            ChatRoleType.USER -> UserMessageBubble(message = message.content)
-                            ChatRoleType.GPT -> AiMessageBubble(message = message.content)
-                            ChatRoleType.SYSTEM -> Unit
+                    itemsIndexed(chatHistoryState.data.messages) { index, message ->
+                        if (message.isUser) {
+                            UserMessageBubble(message = message.content)
+                        } else {
+                            AiMessageBubble(message = message.content)
                         }
                     }
 
                 is LoadState.Failed -> {}
             }
 
-            if (gptResponseState is LoadState.InProgress) {
+            if (responseState is LoadState.InProgress) {
                 item {
                     CircularProgressIndicator(
                         modifier = Modifier
@@ -214,7 +213,7 @@ fun MainContent(
                     .size(40.dp)
                     .clickable {
                         if (chatHistoryState is LoadState.InProgress) return@clickable
-                        when (gptResponseState) {
+                        when (responseState) {
                             is LoadState.Succeeded -> {
                                 onSearchClick(searchWord)
                                 searchWord = ""

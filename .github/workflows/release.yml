@@ -21,6 +21,9 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Create local.properties
+        run: echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" > ./local.properties
+
       - name: Decode keystore
         run: echo "${{ secrets.APP_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.jks
 

@@ -25,7 +25,9 @@ jobs:
         run: echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" > ./local.properties
 
       - name: Decode keystore
-        run: echo "${{ secrets.APP_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.jks
+        run: |
+          $base64String = "${{ secrets.APP_KEYSTORE_BASE64 }}"
+          [System.Convert]::FromBase64String($base64String) | Set-Content -Path my-release-key.jks -Encoding Byte
 
       - name: Build Release APK
         run: |

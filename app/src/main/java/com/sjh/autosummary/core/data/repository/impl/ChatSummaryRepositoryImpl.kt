@@ -173,18 +173,18 @@ class ChatSummaryRepositoryImpl @Inject constructor(
             "summaries:${convertChatSummaryToJson(it)}"
         }
         return promptizedSummaries + """
-            new summary :$responseSummary
+        new summary :$responseSummary
     
-            Please analyze the 'summaries' array and the 'new summary', and process them as follows:
-            1. If the 'new summary' is related to any items in the 'summaries' array:
-             - Maintain the ID of each 'summaries' item and appropriately integrate the contents of 'summaries' and the 'new summary'.
-             - When integrating, group the items based on their broader topic or category to create a new 'summaries' array."
-            2. If the 'new summary' is not related to any items in the 'summaries' array:
-             - Create a 'new summary' with an ID set to 0.
-            3. Do not include unchanged 'summaries' in the result; only provide updated 'summaries' with their ids.
-            4. The result should be in the format of an array of JSON objects. (Even if there is only one object, please use array format.)
-            5. Each object must include all fields and should have the following structure, ensuring it accurately reflects the content at each level. The 'childInformations' field is recursive and should be structured accordingly:                $chatSummaryInJsonForm
-            """.trimIndent()
+        Please analyze the 'summaries' array and the 'new summary', and process them as follows:
+        1. If the 'new summary' is related to any items in the 'summaries' array:
+         - Maintain the ID of each 'summaries' item and appropriately integrate the contents of 'summaries' and the 'new summary'.
+         - When integrating, group the items based on their broader topic or category to create a new 'summaries' array.
+        2. If the 'new summary' is not related to any items in the 'summaries' array:
+         - Create a 'new summary' with an ID set to 0.
+        3. Do not include unchanged 'summaries' in the result; only provide updated 'summaries' with their ids.
+        4. The result should be in the format of an array of JSON objects. (Even if there is only one object, please use array format.)
+        5. Each object must include all fields and should have the following structure, ensuring it accurately reflects the content at each level. The 'childInformations' field is recursive and should be structured accordingly:                $chatSummaryInJsonForm
+        """.trimIndent()
     }
 
     private val chatSummaryInJsonForm = """

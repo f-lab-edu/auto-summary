@@ -27,7 +27,8 @@ jobs:
       - name: Decode keystore
         run: |
           $base64String = "${{ secrets.APP_KEYSTORE_BASE64 }}"
-          [System.Convert]::FromBase64String($base64String) | Set-Content -Path my-release-key.jks -Encoding Byte
+          $bytes = [System.Convert]::FromBase64String($base64String)
+          [System.IO.File]::WriteAllBytes("my-release-key.jks", $bytes)
 
       - name: Build Release APK
         run: |

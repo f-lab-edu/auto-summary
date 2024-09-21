@@ -25,12 +25,12 @@ jobs:
         run: echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" > ./local.properties
 
       - name: Decode keystore
+        shell: bash
         run: |
-          $base64String = "${{ secrets.APP_KEYSTORE_BASE64 }}"
-          $bytes = [System.Convert]::FromBase64String($base64String)
-          [System.IO.File]::WriteAllBytes("my-release-key.jks", $bytes)
+          echo "${{ secrets.APP_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.jks
 
       - name: Build Release APK
+        shell: bash
         run: |
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=my-release-key.jks \

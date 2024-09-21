@@ -22,5 +22,5 @@ data class ChatMessageEntity(
     @PrimaryKey(autoGenerate = true) val messageId: Long = 0,
     @ColumnInfo(name = "chat_history_id") val chatHistoryId: Long,
     var content: String,
-    var isUser: Boolean,
+    var isFromUser: Boolean,
 )

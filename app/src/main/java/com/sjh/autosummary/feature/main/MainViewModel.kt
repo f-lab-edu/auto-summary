@@ -74,7 +74,7 @@ class MainViewModel @Inject constructor(
             reduce {
                 state.copy(
                     chatHistoryState = LoadState.Succeeded(
-                        newChatHistory.copy(id = addResult.id)
+                        newChatHistory.copy(id = addResult)
                     )
                 )
             }

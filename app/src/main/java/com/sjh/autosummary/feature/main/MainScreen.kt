@@ -169,7 +169,7 @@ fun MainContent(
 
                 is LoadState.Succeeded ->
                     itemsIndexed(chatHistoryState.data.messages) { index, message ->
-                        if (message.isUser) {
+                        if (message.isFromUser) {
                             UserMessageBubble(message = message.content)
                         } else {
                             AiMessageBubble(message = message.content)

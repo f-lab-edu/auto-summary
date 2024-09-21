@@ -7,51 +7,48 @@ import com.sjh.autosummary.core.database.model.ChatHistoryWithMessages
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
 import com.sjh.autosummary.core.database.room.entity.ChatMessageEntity
 import com.sjh.autosummary.core.model.ChatHistory
+import kotlinx.serialization.json.JsonNull.content
 import javax.inject.Inject
 
 class ChatHistoryRepositoryImpl @Inject constructor(
     private val localHistoryDataSource: LocalHistoryDataSource
 ) : ChatHistoryRepository {
 
-    override suspend fun addOrUpdateChatHistory(chatHistory: ChatHistory): ChatHistory? {
-        val updateResult = if (chatHistory.id != 0L) {
+    override suspend fun addOrUpdateChatHistory(chatHistory: ChatHistory): Long? =
+        if (chatHistory.id != 0L) {
             updateChatHistory(chatHistory)
         } else {
             addChatHistory(chatHistory)
         }
 
-        return if (updateResult != null) {
-            chatHistory.copy(id = updateResult)
-        } else {
-            null
-        }
-    }
-
     override suspend fun updateChatHistoryMessages(
         chatHistory: ChatHistory,
         latestMessage: String,
-        isUser: Boolean,
+        isFromUser: Boolean,
     ): ChatHistory? {
         val latestChatHistory = chatHistory.copy(
-            messages = chatHistory
-                .messages
-                .toMutableList()
-                .apply {
-                    this.add(
-                        ChatHistory.Message(
-                            content = latestMessage,
-                            isUser = isUser
-                        )
-                    )
-                }
+            messages = chatHistory.messages + ChatHistory.Message(
+                latestMessage,
+                isFromUser
+            )
         )
 
         val updateResult = localHistoryDataSource
             .updateChatHistoryWithMessage(
-                chatHistoryEntity = latestChatHistory.toChatHistoryEntity(),
+                chatHistoryEntity = ChatHistoryEntity(
+                    latestChatHistory.id,
+                    latestChatHistory.date,
+                    latestChatHistory.name,
+                ),
                 chatMessageEntities = latestChatHistory
                     .messages
-                    .map { it.toChatMessageEntity(chatHistory.id) }
+                    .map { message ->
+                        ChatMessageEntity(
+                            chatHistoryId = chatHistory.id,
+                            content = message.content,
+                            isFromUser = message.isFromUser,
+                        )
+                    }
             )
             .getOrNull()
 
@@ -87,18 +84,32 @@ class ChatHistoryRepositoryImpl @Inject constructor(
         }
 
     override suspend fun deleteChatHistory(chatHistory: ChatHistory): Result<Unit> =
-        localHistoryDataSource.deleteChatHistory(chatHistory.toChatHistoryEntity())
+        localHistoryDataSource.deleteChatHistory(
+            ChatHistoryEntity(
+                chatHistory.id,
+                chatHistory.date,
+                chatHistory.name,
+            )
+        )
 
     private suspend fun updateChatHistory(
         chatHistory: ChatHistory,
     ): Long? =
         localHistoryDataSource
             .updateChatHistoryWithMessage(
-                chatHistoryEntity = chatHistory.toChatHistoryEntity(),
+                chatHistoryEntity = ChatHistoryEntity(
+                    chatHistory.id,
+                    chatHistory.date,
+                    chatHistory.name,
+                ),
                 chatMessageEntities = chatHistory
                     .messages
-                    .map {
-                        it.toChatMessageEntity(chatHistory.id)
+                    .map { message ->
+                        ChatMessageEntity(
+                            chatHistoryId = chatHistory.id,
+                            content = message.content,
+                            isFromUser = message.isFromUser,
+                        )
                     }
             )
             .getOrNull()
@@ -108,47 +119,33 @@ class ChatHistoryRepositoryImpl @Inject constructor(
     ): Long? =
         localHistoryDataSource
             .insertChatHistoryWithMessages(
-                chatHistoryEntity = chatHistory.toChatHistoryEntity(),
+                chatHistoryEntity = ChatHistoryEntity(
+                    chatHistory.id,
+                    chatHistory.date,
+                    chatHistory.name,
+                ),
                 chatMessageEntities = chatHistory
                     .messages
-                    .map {
-                        it.toChatMessageEntity(chatHistory.id)
+                    .map { message ->
+                        ChatMessageEntity(
+                            chatHistoryId = chatHistory.id,
+                            content = message.content,
+                            isFromUser = message.isFromUser,
+                        )
                     }
             )
             .getOrNull()
 }
-
-private fun ChatHistory.toChatHistoryEntity() =
-    ChatHistoryEntity(
-        id = id,
-        date = date,
-        name = name,
-    )
 
 private fun ChatHistoryWithMessages.toChatHistory(): ChatHistory =
     ChatHistory(
         id = chatHistory.id,
         date = chatHistory.date,
         name = chatHistory.name,
-        messages = chatMessages.map(ChatMessageEntity::toMessage),
+        messages = chatMessages.map { message ->
+            ChatHistory.Message(
+                content = content,
+                isFromUser = message.isFromUser,
+            )
+        },
     )
-
-private fun ChatHistory.Message.toChatMessageEntity(chatHistoryId: Long): ChatMessageEntity =
-    ChatMessageEntity(
-        chatHistoryId = chatHistoryId,
-        content = content,
-        isUser = isUser,
-    )
-
-private fun ChatMessageEntity.toMessage(): ChatHistory.Message =
-    if (isUser) {
-        ChatHistory.Message(
-            content = content,
-            isUser = true,
-        )
-    } else {
-        ChatHistory.Message(
-            content = content,
-            isUser = false,
-        )
-    }

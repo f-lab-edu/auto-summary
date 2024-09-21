@@ -3,7 +3,7 @@ package com.sjh.autosummary.core.data.repository
 import com.sjh.autosummary.core.model.ChatHistory
 
 interface ChatHistoryRepository {
-    suspend fun addOrUpdateChatHistory(chatHistory: ChatHistory): ChatHistory?
+    suspend fun addOrUpdateChatHistory(chatHistory: ChatHistory): Long?
 
     suspend fun updateChatHistoryMessages(
         chatHistory: ChatHistory,

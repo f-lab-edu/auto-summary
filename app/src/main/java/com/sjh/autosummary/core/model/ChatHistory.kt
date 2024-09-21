@@ -10,6 +10,6 @@ data class ChatHistory(
 ) {
     data class Message(
         var content: String,
-        var isUser: Boolean,
+        var isFromUser: Boolean,
     )
 }

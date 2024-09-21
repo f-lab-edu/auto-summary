@@ -7,10 +7,7 @@ import com.sjh.autosummary.core.database.LocalSummaryDataSource
 import com.sjh.autosummary.core.database.room.entity.ChatSummaryEntity
 import com.sjh.autosummary.core.model.ChatSummary
 import com.sjh.autosummary.core.network.model.GptChatCompletionsRequest
-import com.sjh.autosummary.core.network.model.GptChatCompletionsResponse
 import com.sjh.autosummary.core.network.retrofit.RetrofitGptApiHolder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -26,7 +23,16 @@ class ChatSummaryRepositoryImpl @Inject constructor(
             localSummaryDataSource
                 .getChatSummaryById(chatSummaryId)
                 .mapCatching { entity ->
-                    entity?.toChatSummary()
+                    if (entity != null) {
+                        ChatSummary(
+                            entity.id,
+                            entity.title,
+                            entity.subTitle,
+                            entity.content
+                        )
+                    } else {
+                        null
+                    }
                 }
         } catch (e: Exception) {
             Log.e("whatisthis", e.toString())
@@ -38,7 +44,14 @@ class ChatSummaryRepositoryImpl @Inject constructor(
             localSummaryDataSource
                 .getAllChatSummaries()
                 .mapCatching { entities ->
-                    entities.map(ChatSummaryEntity::toChatSummary)
+                    entities.map { chatSummaryEntity ->
+                        ChatSummary(
+                            chatSummaryEntity.id,
+                            chatSummaryEntity.title,
+                            chatSummaryEntity.subTitle,
+                            chatSummaryEntity.content
+                        )
+                    }
                 }
         } catch (e: Exception) {
             Log.e("whatisthis", e.toString())
@@ -48,7 +61,14 @@ class ChatSummaryRepositoryImpl @Inject constructor(
     override suspend fun deleteChatSummary(chatSummary: ChatSummary): Result<Unit> =
         try {
             localSummaryDataSource
-                .deleteChatSummary(chatSummary.toChatSummaryEntity())
+                .deleteChatSummary(
+                    ChatSummaryEntity(
+                        chatSummary.id,
+                        chatSummary.title,
+                        chatSummary.subTitle,
+                        chatSummary.childInformations
+                    )
+                )
         } catch (e: Exception) {
             Log.e("whatisthis", e.toString())
             Result.failure(e)
@@ -102,37 +122,33 @@ class ChatSummaryRepositoryImpl @Inject constructor(
         }
 
     private suspend fun completeRequest(message: List<String>): Result<String> =
-        withContext(Dispatchers.IO) {
+        try {
             Log.d("whatisthis", "completeRequest message : $message")
-            try {
-                val createResult = retrofitGptApiHolder
-                    .retrofitGptApi
-                    .createChatCompletion(message.toGptChatCompletionsRequest())
-                    .extractContent()
-
-                Result.success(createResult)
-            } catch (e: Exception) {
-                Log.e("whatisthis", e.toString())
-                Result.failure(e)
-            }
-        }
-
-    private fun List<String>.toGptChatCompletionsRequest() =
-        GptChatCompletionsRequest(
-            messages = this.map {
-                GptChatCompletionsRequest.Message(
-                    content = it,
-                    role = "user"
+            val chatCompletionResponse = retrofitGptApiHolder
+                .retrofitGptApi
+                .createChatCompletion(
+                    GptChatCompletionsRequest(
+                        GptConst.DEFAULT_GPT_MODEL,
+                        message.map {
+                            GptChatCompletionsRequest.Message(
+                                content = it,
+                                role = "user"
+                            )
+                        }
+                    )
                 )
-            },
-            model = GptConst.DEFAULT_GPT_MODEL
-        )
 
-    private fun GptChatCompletionsResponse.extractContent(): String =
-        this.choices
-            .first()
-            .message
-            .content
+            val assistantMessage = chatCompletionResponse
+                .choices
+                .first()
+                .message
+                .content
+
+            Result.success(assistantMessage)
+        } catch (e: Exception) {
+            Log.e("whatisthis", e.toString())
+            Result.failure(e)
+        }
 
     /** 입력된 chatSummary의 띄어쓰기를 제외하고 모든 공백을 제거해서 반환해주는 메서드 (글자 수를 줄이기 위해) */
     private fun convertChatSummaryToJson(chatSummary: ChatSummary): String =
@@ -152,30 +168,24 @@ class ChatSummaryRepositoryImpl @Inject constructor(
     private fun buildChatSummarySummarizeRequest(
         chatSummaries: List<ChatSummary>,
         responseSummary: String
-    ): List<String> =
-        chatSummaries
-            .map {
-                "summaries:${convertChatSummaryToJson(it)}"
-            }
-            .toMutableList()
-            .apply {
-                this.add(
-                    """
-                    new summary :$responseSummary
-        
-                    Please analyze the 'summaries' array and the 'new summary', and process them as follows:
-                    1. If the 'new summary' is related to any items in the 'summaries' array:
-                     - Maintain the ID of each 'summaries' item and appropriately integrate the contents of 'summaries' and the 'new summary'.
-                     - When integrating, group the items based on their broader topic or category to create a new 'summaries' array."
-                    2. If the 'new summary' is not related to any items in the 'summaries' array:
-                     - Create a 'new summary' with an ID set to 0.
-                    3. Do not include unchanged 'summaries' in the result; only provide updated 'summaries' with their ids.
-                    4. The result should be in the format of an array of JSON objects. (Even if there is only one object, please use array format.)
-                    5. Each object must include all fields and should have the following structure, ensuring it accurately reflects the content at each level. The 'childInformations' field is recursive and should be structured accordingly:                $chatSummaryInJsonForm
-                    """.trimIndent()
-                )
-            }
-            .toList()
+    ): List<String> {
+        val promptizedSummaries = chatSummaries.mapTo(mutableListOf()) {
+            "summaries:${convertChatSummaryToJson(it)}"
+        }
+        return promptizedSummaries + """
+            new summary :$responseSummary
+    
+            Please analyze the 'summaries' array and the 'new summary', and process them as follows:
+            1. If the 'new summary' is related to any items in the 'summaries' array:
+             - Maintain the ID of each 'summaries' item and appropriately integrate the contents of 'summaries' and the 'new summary'.
+             - When integrating, group the items based on their broader topic or category to create a new 'summaries' array."
+            2. If the 'new summary' is not related to any items in the 'summaries' array:
+             - Create a 'new summary' with an ID set to 0.
+            3. Do not include unchanged 'summaries' in the result; only provide updated 'summaries' with their ids.
+            4. The result should be in the format of an array of JSON objects. (Even if there is only one object, please use array format.)
+            5. Each object must include all fields and should have the following structure, ensuring it accurately reflects the content at each level. The 'childInformations' field is recursive and should be structured accordingly:                $chatSummaryInJsonForm
+            """.trimIndent()
+    }
 
     private val chatSummaryInJsonForm = """
         {
@@ -202,13 +212,20 @@ class ChatSummaryRepositoryImpl @Inject constructor(
         }
         """
 
-    private suspend fun updateSummaries(newSummary: String): List<Long> {
-        val extractedJson = extractJsonString(newSummary) ?: return emptyList()
-        return try {
+    private suspend fun updateSummaries(newSummary: String): List<Long> =
+        try {
+            val extractedJson = extractJsonString(newSummary) ?: throw Exception("Json 형식으로 반환 실패")
             convertJsonToChatSummary(extractedJson)
-                .mapNotNull {
+                .mapNotNull { chatSummary ->
                     localSummaryDataSource
-                        .insertChatSummary(it.toChatSummaryEntity())
+                        .insertChatSummary(
+                            ChatSummaryEntity(
+                                chatSummary.id,
+                                chatSummary.title,
+                                chatSummary.subTitle,
+                                chatSummary.childInformations
+                            )
+                        )
                         .getOrNull()
                 }
         } catch (e: Exception) {
@@ -216,7 +233,6 @@ class ChatSummaryRepositoryImpl @Inject constructor(
             emptyList<Long>()
             TODO("json 형식으로 변환을 실패했을 경우, 답변만 다시 json 형식으로 변경을 시도해 Summary에 추가한다.")
         }
-    }
 
     private fun extractJsonString(input: String): String? {
         // JSON 문자열이 시작하는 인덱스 찾기
@@ -235,17 +251,3 @@ class ChatSummaryRepositoryImpl @Inject constructor(
     private fun convertJsonToChatSummary(chatSummaryInJson: String): List<ChatSummary> =
         json.decodeFromString(chatSummaryInJson)
 }
-
-private fun ChatSummary.toChatSummaryEntity() = ChatSummaryEntity(
-    id = id,
-    title = title,
-    subTitle = subTitle,
-    content = childInformations
-)
-
-private fun ChatSummaryEntity.toChatSummary() = ChatSummary(
-    id = id,
-    title = title,
-    subTitle = subTitle,
-    childInformations = content
-)

@@ -30,8 +30,8 @@ class RetrofitGptApiHolder(
                         val newRequest = chain
                             .request()
                             .newBuilder()
-                            .addHeader("Content-Type", "application/json")
-                            .addHeader("Accept", "application/json")
+                            .addHeader("Content-Type", "application/json; charset=utf-8")
+                            .addHeader("Accept", "application/json; charset=utf-8")
                             .addHeader("Authorization", "Bearer $GPT_API_KEY")
                             .build()
                         chain.proceed(newRequest)

@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: release
 
     steps:
@@ -25,9 +25,12 @@ jobs:
         run: echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" > ./local.properties
 
       - name: Decode keystore
-        run: echo "${{ secrets.APP_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.jks
+        shell: bash
+        run: |
+          echo "${{ secrets.APP_KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.jks
 
       - name: Build Release APK
+        shell: bash
         run: |
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=my-release-key.jks \

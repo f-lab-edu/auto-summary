@@ -5,10 +5,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.sjh.autosummary.core.model.ChatRoleType
 
 @Entity(
-    tableName = "message_content",
+    tableName = "chat_message",
     foreignKeys = [
         ForeignKey(
             entity = ChatHistoryEntity::class,
@@ -19,9 +18,9 @@ import com.sjh.autosummary.core.model.ChatRoleType
     ],
     indices = [Index(value = ["chat_history_id"])],
 )
-data class MessageContentEntity(
+data class ChatMessageEntity(
     @PrimaryKey(autoGenerate = true) val messageId: Long = 0,
     @ColumnInfo(name = "chat_history_id") val chatHistoryId: Long,
     var content: String,
-    var role: ChatRoleType,
+    var isFromUser: Boolean,
 )

@@ -2,7 +2,7 @@ package com.sjh.autosummary.core.data.repository
 
 import com.sjh.autosummary.core.model.ChatSummary
 
-interface SummaryRepository {
+interface ChatSummaryRepository {
     suspend fun mergeSummaries(content: String): Result<Boolean>
 
     suspend fun findChatSummary(chatSummaryId: Long): Result<ChatSummary?>

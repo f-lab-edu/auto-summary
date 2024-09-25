@@ -4,16 +4,16 @@ import androidx.room.Transaction
 import com.sjh.autosummary.core.database.LocalHistoryDataSource
 import com.sjh.autosummary.core.database.model.ChatHistoryWithMessages
 import com.sjh.autosummary.core.database.room.dao.ChatHistoryDao
-import com.sjh.autosummary.core.database.room.dao.MessageContentDao
+import com.sjh.autosummary.core.database.room.dao.ChatMessageDao
 import com.sjh.autosummary.core.database.room.entity.ChatHistoryEntity
-import com.sjh.autosummary.core.database.room.entity.MessageContentEntity
+import com.sjh.autosummary.core.database.room.entity.ChatMessageEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class LocalHistoryDataSourceImpl @Inject constructor(
     private val chatHistoryDao: ChatHistoryDao,
-    private val messageContentDao: MessageContentDao,
+    private val chatMessageDao: ChatMessageDao,
 ) : LocalHistoryDataSource {
 
     override suspend fun getChatHistoryById(chatHistoryId: Long): Result<ChatHistoryEntity?> =
@@ -51,13 +51,13 @@ class LocalHistoryDataSourceImpl @Inject constructor(
     @Transaction
     override suspend fun insertChatHistoryWithMessages(
         chatHistoryEntity: ChatHistoryEntity,
-        messageContentEntities: List<MessageContentEntity>
+        chatMessageEntities: List<ChatMessageEntity>
     ): Result<Long> =
         withContext(Dispatchers.IO) {
             try {
                 val chatHistoryId = chatHistoryDao.insertChatHistory(chatHistoryEntity)
-                for (messageContent in messageContentEntities) {
-                    messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryId))
+                for (chatMessage in chatMessageEntities) {
+                    chatMessageDao.insertMessageContent(chatMessage.copy(chatHistoryId = chatHistoryId))
                 }
                 Result.success(chatHistoryId)
             } catch (e: Exception) {
@@ -67,17 +67,17 @@ class LocalHistoryDataSourceImpl @Inject constructor(
 
     override suspend fun updateChatHistoryWithMessage(
         chatHistoryEntity: ChatHistoryEntity,
-        messageContentEntities: List<MessageContentEntity>
+        chatMessageEntities: List<ChatMessageEntity>
     ): Result<Long> =
         withContext(Dispatchers.IO) {
             try {
                 // 기존 메시지 내용 삭제
-                messageContentDao.deleteMessagesByChatHistoryId(chatHistoryEntity.id)
+                chatMessageDao.deleteMessagesByChatHistoryId(chatHistoryEntity.id)
                 // 채팅 기록 업데이트
                 chatHistoryDao.updateChatHistory(chatHistoryEntity)
                 // 새 메시지 내용 삽입
-                for (messageContent in messageContentEntities) {
-                    messageContentDao.insertMessageContent(messageContent.copy(chatHistoryId = chatHistoryEntity.id))
+                for (chatMessage in chatMessageEntities) {
+                    chatMessageDao.insertMessageContent(chatMessage.copy(chatHistoryId = chatHistoryEntity.id))
                 }
                 Result.success(chatHistoryEntity.id)
             } catch (e: Exception) {

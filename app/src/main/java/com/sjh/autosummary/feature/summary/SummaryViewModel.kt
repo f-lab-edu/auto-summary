@@ -3,7 +3,7 @@ package com.sjh.autosummary.feature.summary
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sjh.autosummary.core.common.LoadState
-import com.sjh.autosummary.core.data.repository.SummaryRepository
+import com.sjh.autosummary.core.data.repository.ChatSummaryRepository
 import com.sjh.autosummary.core.model.ChatSummary
 import com.sjh.autosummary.feature.summary.contract.event.SummaryScreenEvent
 import com.sjh.autosummary.feature.summary.contract.sideeffect.SummaryScreenSideEffect
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @OptIn(OrbitInternal::class)
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
-    private val summaryRepository: SummaryRepository,
+    private val chatSummaryRepository: ChatSummaryRepository,
 ) : ViewModel(),
     ContainerHost<SummaryScreenState, SummaryScreenSideEffect> {
 
@@ -39,7 +39,7 @@ class SummaryViewModel @Inject constructor(
 
     private fun loadChatSummaries(): Job = viewModelScope.launch {
         container.orbit {
-            val retrieveResult = summaryRepository
+            val retrieveResult = chatSummaryRepository
                 .retrieveAllChatSummaries()
                 .getOrNull()
 
@@ -60,7 +60,7 @@ class SummaryViewModel @Inject constructor(
             val currentUiState =
                 state.chatSummaryState as? LoadState.Succeeded ?: return@orbit
 
-            val deleteResult = summaryRepository
+            val deleteResult = chatSummaryRepository
                 .deleteChatSummary(chatSummary)
                 .getOrNull()
 

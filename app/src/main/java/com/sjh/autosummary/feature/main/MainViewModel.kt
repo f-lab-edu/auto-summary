@@ -3,11 +3,9 @@ package com.sjh.autosummary.feature.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sjh.autosummary.core.common.LoadState
-import com.sjh.autosummary.core.data.model.RequestMessage
-import com.sjh.autosummary.core.data.model.ResponseMessage
-import com.sjh.autosummary.core.data.repository.ChatRepository
-import com.sjh.autosummary.core.data.repository.HistoryRepository
-import com.sjh.autosummary.core.data.repository.SummaryRepository
+import com.sjh.autosummary.core.data.repository.ChatCompletionRepository
+import com.sjh.autosummary.core.data.repository.ChatHistoryRepository
+import com.sjh.autosummary.core.data.repository.ChatSummaryRepository
 import com.sjh.autosummary.core.model.ChatHistory
 import com.sjh.autosummary.feature.main.contract.event.MainScreenEvent
 import com.sjh.autosummary.feature.main.contract.sideeffect.MainScreenSideEffect
@@ -26,9 +24,9 @@ import javax.inject.Inject
 @OptIn(OrbitInternal::class)
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val chatRepository: ChatRepository,
-    private val historyRepository: HistoryRepository,
-    private val summaryRepository: SummaryRepository,
+    private val chatCompletionRepository: ChatCompletionRepository,
+    private val chatHistoryRepository: ChatHistoryRepository,
+    private val chatSummaryRepository: ChatSummaryRepository,
 ) : ViewModel(),
     ContainerHost<MainScreenState, MainScreenSideEffect> {
 
@@ -45,7 +43,7 @@ class MainViewModel @Inject constructor(
                 }
             }
 
-            is MainScreenEvent.OnSearchClick -> requestChatResponseAndSummary(event.message)
+            is MainScreenEvent.OnSearchClick -> completeAndSummarizeChat(event.message)
             MainScreenEvent.OnHistoryClick -> saveChatHistoryAndMoveToHistory()
         }
     }
@@ -56,7 +54,7 @@ class MainViewModel @Inject constructor(
             val currentUiState =
                 state.chatHistoryState as? LoadState.Succeeded ?: return@orbit
 
-            historyRepository.addOrUpdateChatHistory(
+            chatHistoryRepository.addOrUpdateChatHistory(
                 chatHistory = currentUiState.data
             )
 
@@ -70,13 +68,13 @@ class MainViewModel @Inject constructor(
 
             val newChatHistory = getInitialChatHistory()
 
-            val chatHistoryId =
-                historyRepository.addOrUpdateChatHistory(newChatHistory) ?: return@orbit
+            val addResult =
+                chatHistoryRepository.addOrUpdateChatHistory(newChatHistory) ?: return@orbit
 
             reduce {
                 state.copy(
                     chatHistoryState = LoadState.Succeeded(
-                        newChatHistory.copy(id = chatHistoryId)
+                        newChatHistory.copy(id = addResult)
                     )
                 )
             }
@@ -88,10 +86,10 @@ class MainViewModel @Inject constructor(
             var chatHistory = ChatHistory(
                 id = chatHistoryId,
                 date = formatDate(LocalDate.now()),
-                messageList = emptyList(),
+                messages = emptyList(),
             )
 
-            val chatHistoryResult = historyRepository
+            val chatHistoryResult = chatHistoryRepository
                 .findChatHistory(chatHistoryId)
                 .getOrNull()
 
@@ -99,7 +97,7 @@ class MainViewModel @Inject constructor(
                 chatHistory = ChatHistory(
                     id = chatHistoryId,
                     date = chatHistoryResult.date,
-                    messageList = chatHistoryResult.messageList,
+                    messages = chatHistoryResult.messages,
                     name = chatHistoryResult.name
                 )
             } else {
@@ -115,39 +113,43 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun requestChatResponseAndSummary(message: String): Job = viewModelScope.launch {
+    private fun completeAndSummarizeChat(userMessage: String): Job = viewModelScope.launch {
         container.orbit {
             val currentChatHistoryUiState =
                 state.chatHistoryState as? LoadState.Succeeded ?: return@orbit
-
-            if (state.gptResponseState !is LoadState.Succeeded) return@orbit
+            if (state.responseState !is LoadState.Succeeded) return@orbit
 
             val currentChatHistory = currentChatHistoryUiState.data
-            val chatMessageList = currentChatHistory.messageList.toMutableList()
-            val myMessage = RequestMessage(content = message)
+
+            val updateUserMessageResult = chatHistoryRepository.updateChatHistoryMessages(
+                chatHistory = currentChatHistory,
+                latestMessage = userMessage,
+                isUser = true,
+            ) ?: return@orbit
 
             reduce {
-                chatMessageList += myMessage
-
                 state.copy(
-                    gptResponseState = LoadState.InProgress,
-                    chatHistoryState = LoadState.Succeeded(currentChatHistory.copy(messageList = chatMessageList.toList()))
+                    responseState = LoadState.InProgress,
+                    chatHistoryState = LoadState.Succeeded(updateUserMessageResult)
                 )
             }
 
-            val askResult = chatRepository.receiveChatResponse(myMessage)
+            val completeResult = chatCompletionRepository.completeChat(userMessage)
 
-            if (askResult.isFailure) {
+            if (completeResult.isFailure) {
+                val updateAssistantFailMessageResult =
+                    chatHistoryRepository.updateChatHistoryMessages(
+                        chatHistory = (state.chatHistoryState as LoadState.Succeeded).data,
+                        latestMessage = completeResult.exceptionOrNull().toString(),
+                        isUser = false,
+                    ) ?: return@orbit
+
                 reduce {
-                    chatMessageList += ResponseMessage(
-                        askResult.exceptionOrNull().toString()
-                    )
-
                     state.copy(
-                        gptResponseState = LoadState.Succeeded(false),
+                        responseState = LoadState.Succeeded(false),
                         chatHistoryState = LoadState.Succeeded(
                             currentChatHistory.copy(
-                                messageList = chatMessageList.toList()
+                                messages = updateAssistantFailMessageResult.messages.toList()
                             )
                         )
                     )
@@ -155,19 +157,22 @@ class MainViewModel @Inject constructor(
                 return@orbit
             }
 
-            val aiAnswer = askResult.getOrNull()
+            val assistantMessage = completeResult.getOrNull()
 
-            if (aiAnswer != null) summaryRepository.mergeSummaries(aiAnswer.content)
+            if (assistantMessage != null) chatSummaryRepository.mergeSummaries(assistantMessage)
 
-            val gptMessage = aiAnswer ?: ResponseMessage(content = "답변 결과 없음")
+            val updateAssistantSuccessMessageResult =
+                chatHistoryRepository.updateChatHistoryMessages(
+                    chatHistory = (state.chatHistoryState as LoadState.Succeeded).data,
+                    latestMessage = assistantMessage ?: "답변 결과 없음",
+                    isUser = false,
+                ) ?: return@orbit
 
             reduce {
-                val gptResponseState = aiAnswer != null
-                chatMessageList += gptMessage
                 state.copy(
-                    gptResponseState = LoadState.Succeeded(gptResponseState),
+                    responseState = LoadState.Succeeded(assistantMessage != null),
                     chatHistoryState = LoadState.Succeeded(
-                        currentChatHistory.copy(messageList = chatMessageList.toList())
+                        currentChatHistory.copy(messages = updateAssistantSuccessMessageResult.messages.toList())
                     )
                 )
             }
@@ -176,7 +181,7 @@ class MainViewModel @Inject constructor(
 
     private fun getInitialChatHistory() = ChatHistory(
         date = formatDate(LocalDate.now()),
-        messageList = emptyList()
+        messages = emptyList()
     )
 
     private fun formatDate(date: LocalDate): String {
